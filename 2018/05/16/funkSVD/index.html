@@ -1,0 +1,264 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  
+
+  
+  <title>FunkSVD | Hexo</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+  <meta name="description" content="京客隆数据分析协同过滤算法矩阵分解 奇异值分解（Singular Value Decomposition）是线性代数中一种重要的矩阵分解，是矩阵分析中正规矩酉对角化的推广。在信号处理、统计学等领域有重要应用。奇异值分解则是谱分析理论在任意矩阵上的推广。 应用 a. 矩阵近似值： 奇异值分解在统计中的主要应用为主成分分析（PCA），一种数据分析方法，用来找出大量数据中所隐含的“模式”，它可以用在模式">
+<meta name="keywords" content="Recommend,ML">
+<meta property="og:type" content="article">
+<meta property="og:title" content="FunkSVD">
+<meta property="og:url" content="http://yoursite.com/2018/05/16/funkSVD/index.html">
+<meta property="og:site_name" content="Hexo">
+<meta property="og:description" content="京客隆数据分析协同过滤算法矩阵分解 奇异值分解（Singular Value Decomposition）是线性代数中一种重要的矩阵分解，是矩阵分析中正规矩酉对角化的推广。在信号处理、统计学等领域有重要应用。奇异值分解则是谱分析理论在任意矩阵上的推广。 应用 a. 矩阵近似值： 奇异值分解在统计中的主要应用为主成分分析（PCA），一种数据分析方法，用来找出大量数据中所隐含的“模式”，它可以用在模式">
+<meta property="og:locale" content="default">
+<meta property="og:updated_time" content="2018-05-16T16:54:00.060Z">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="FunkSVD">
+<meta name="twitter:description" content="京客隆数据分析协同过滤算法矩阵分解 奇异值分解（Singular Value Decomposition）是线性代数中一种重要的矩阵分解，是矩阵分析中正规矩酉对角化的推广。在信号处理、统计学等领域有重要应用。奇异值分解则是谱分析理论在任意矩阵上的推广。 应用 a. 矩阵近似值： 奇异值分解在统计中的主要应用为主成分分析（PCA），一种数据分析方法，用来找出大量数据中所隐含的“模式”，它可以用在模式">
+  
+    <link rel="alternate" href="/atom.xml" title="Hexo" type="application/atom+xml">
+  
+  
+    <link rel="icon" href="/favicon.png">
+  
+  
+    <link href="//fonts.googleapis.com/css?family=Source+Code+Pro" rel="stylesheet" type="text/css">
+  
+  <link rel="stylesheet" href="/css/style.css">
+</head>
+
+<body>
+  <div id="container">
+    <div id="wrap">
+      <header id="header">
+  <div id="banner"></div>
+  <div id="header-outer" class="outer">
+    <div id="header-title" class="inner">
+      <h1 id="logo-wrap">
+        <a href="/" id="logo">Hexo</a>
+      </h1>
+      
+    </div>
+    <div id="header-inner" class="inner">
+      <nav id="main-nav">
+        <a id="main-nav-toggle" class="nav-icon"></a>
+        
+          <a class="main-nav-link" href="/">Home</a>
+        
+          <a class="main-nav-link" href="/archives">Archives</a>
+        
+      </nav>
+      <nav id="sub-nav">
+        
+          <a id="nav-rss-link" class="nav-icon" href="/atom.xml" title="RSS Feed"></a>
+        
+        <a id="nav-search-btn" class="nav-icon" title="Search"></a>
+      </nav>
+      <div id="search-form-wrap">
+        <form action="//google.com/search" method="get" accept-charset="UTF-8" class="search-form"><input type="search" name="q" class="search-form-input" placeholder="Search"><button type="submit" class="search-form-submit">&#xF002;</button><input type="hidden" name="sitesearch" value="http://yoursite.com"></form>
+      </div>
+    </div>
+  </div>
+</header>
+      <div class="outer">
+        <section id="main"><article id="post-funkSVD" class="article article-type-post" itemscope itemprop="blogPost">
+  <div class="article-meta">
+    <a href="/2018/05/16/funkSVD/" class="article-date">
+  <time datetime="2018-05-16T15:46:38.000Z" itemprop="datePublished">2018-05-16</time>
+</a>
+    
+  </div>
+  <div class="article-inner">
+    
+    
+      <header class="article-header">
+        
+  
+    <h1 class="article-title" itemprop="name">
+      FunkSVD
+    </h1>
+  
+
+      </header>
+    
+    <div class="article-entry" itemprop="articleBody">
+      
+        <h1 id="京客隆数据分析"><a href="#京客隆数据分析" class="headerlink" title="京客隆数据分析"></a>京客隆数据分析</h1><h2 id="协同过滤算法"><a href="#协同过滤算法" class="headerlink" title="协同过滤算法"></a>协同过滤算法</h2><h2 id="矩阵分解"><a href="#矩阵分解" class="headerlink" title="矩阵分解"></a>矩阵分解</h2><ol>
+<li>奇异值分解（Singular Value Decomposition）是线性代数中一种重要的矩阵分解，是矩阵分析中正规矩酉对角化的推广。在信号处理、统计学等领域有重要应用。奇异值分解则是谱分析理论在任意矩阵上的推广。</li>
+<li>应用<br> a. 矩阵近似值：<br> 奇异值分解在统计中的主要应用为主成分分析（PCA），一种数据分析方法，用来找出大量数据中所隐含的“模式”，它可以用在模式识别，数据压缩等方面。PCA算法的作用是把数据集映射到低维空间中去。 数据集的特征值（在SVD中用奇异值表征）按照重要性排列，降维的过程就是舍弃不重要的特征向量的过程，而剩下的特征向量组成的空间即为降维后的空间。<br> b. 求伪逆<br> 求伪逆通常可以用来求解线性最小平方、最小二乘法问题。</li>
+</ol>
+<h2 id="项目过程"><a href="#项目过程" class="headerlink" title="项目过程"></a>项目过程</h2><ol>
+<li>源数据是用户订单与商品信息，将这两者结合，综合信息，得到用户订单信息表</li>
+<li>选择评分指标，然后指标归一化，分别乘weight，最后得到用户对每个商品的评分</li>
+<li><p>形成用户对商品的评分矩阵</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line">feature_df = pd.DataFrame(index=user_id_list, columns=sku_id_list)</span><br><span class="line"><span class="keyword">for</span> index <span class="keyword">in</span> ratings.index:</span><br><span class="line">   user_id = ratings.loc[index, <span class="string">'userId'</span>]</span><br><span class="line">   sku_id = ratings.loc[index, <span class="string">'skuId'</span>]</span><br><span class="line">   rating = ratings.loc[index, <span class="string">'rating'</span>]</span><br><span class="line">   feature_df.loc[user_id, sku_id] = rating</span><br><span class="line">   <span class="keyword">if</span>(index % <span class="number">100</span> == <span class="number">0</span>):</span><br><span class="line">       print(index)</span><br></pre></td></tr></table></figure>
+<p>这里有个问题，对于大数据集，第一行命令会卡死机器，我的是CPU占用太高，导致卡死。Linux可以通过<strong>Top</strong>命令查看资源消耗情况。<br>优化后的代码如下</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br></pre></td><td class="code"><pre><span class="line">feature_df = pd.DataFrame(columns=sku_id_list)</span><br><span class="line">a = <span class="number">1</span></span><br><span class="line"><span class="keyword">for</span> index <span class="keyword">in</span> ratings.index:</span><br><span class="line">    user_id = ratings.loc[index, <span class="string">'userId'</span>]</span><br><span class="line">    sku_id = ratings.loc[index, <span class="string">'skuId'</span>]</span><br><span class="line">    rating = ratings.loc[index, <span class="string">'rating'</span>]</span><br><span class="line">    feature_df.loc[user_id, sku_id] = rating</span><br><span class="line"><span class="comment">#     if index in feature_df.index:</span></span><br><span class="line"><span class="comment">#         feature_df.loc[user_id, sku_id] = rating</span></span><br><span class="line"><span class="comment">#     else:</span></span><br><span class="line"><span class="comment">#         feature_df.loc[user_id, sku_id] = rating</span></span><br><span class="line">    <span class="keyword">if</span>(feature_df.shape[<span class="number">0</span>] != a):</span><br><span class="line">        print(str(feature_df.shape[<span class="number">0</span>] / <span class="number">59216</span> * <span class="number">100</span>) + <span class="string">'%'</span>)</span><br><span class="line"><span class="comment">#         print(feature_df.shape[0])</span></span><br><span class="line">        a = feature_df.shape[<span class="number">0</span>]</span><br></pre></td></tr></table></figure>
+<p>这里犯了个蠢，使用<strong>.loc好像是自动指定的索引（待研究）</strong><br>另，<strong>对大矩阵的遍历是非常耗时间的，有没有可以加速遍历的方法。</strong></p>
+</li>
+<li><p>矩阵分解</p>
+</li>
+</ol>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">import</span> numpy <span class="keyword">as</span> np</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">def</span> <span class="title">svd</span><span class="params">(M,P,Q,K,steps = <span class="number">1000</span>,alpha = <span class="number">0.1</span>,beta = <span class="number">0.02</span>)</span>:</span></span><br><span class="line">    loss_pre = <span class="number">100</span></span><br><span class="line">    <span class="keyword">for</span> step <span class="keyword">in</span> range(steps):</span><br><span class="line">        <span class="keyword">for</span> i <span class="keyword">in</span> range(M.shape[<span class="number">0</span>]):</span><br><span class="line">            <span class="keyword">for</span> j <span class="keyword">in</span> range(M.shape[<span class="number">1</span>]):</span><br><span class="line">                <span class="comment">#有评分</span></span><br><span class="line"><span class="comment">#                 if(j % 100 == 0):</span></span><br><span class="line"><span class="comment">#                     print("(" + str(i)+ "," + str(j) + ")")</span></span><br><span class="line">                <span class="keyword">if</span>(M[i][j] &gt; <span class="number">0</span>):</span><br><span class="line">                    P[i] = P[i] + alpha * ((M[i][j] - np.dot(P[i],Q[j].T))*Q[j] - beta * P[i])</span><br><span class="line">                    Q[j] = Q[j] + alpha * ((M[i][j] - np.dot(P[i],Q[j].T))*P[i] - beta * Q[j])</span><br><span class="line">        loss = <span class="number">0</span></span><br><span class="line">        num = <span class="number">0</span></span><br><span class="line">        <span class="keyword">for</span> i <span class="keyword">in</span> range(M.shape[<span class="number">0</span>]):</span><br><span class="line">            <span class="keyword">for</span> j <span class="keyword">in</span> range(M.shape[<span class="number">1</span>]):</span><br><span class="line">                <span class="comment">#对有评分的项目，计算损失</span></span><br><span class="line">                <span class="keyword">if</span>(M[i][j] &gt; <span class="number">0</span>):</span><br><span class="line">                    num += <span class="number">1</span></span><br><span class="line">                    loss += np.power(M[i][j] - np.dot(P[i],Q[j].T),<span class="number">2</span>)</span><br><span class="line">        loss = loss / num</span><br><span class="line">        print(<span class="string">'------------------------------------'</span>)</span><br><span class="line">        print(<span class="string">'step:'</span> + str(step))</span><br><span class="line">        print(<span class="string">'loss:'</span> + str(loss))</span><br><span class="line">        print(<span class="string">'------------------------------------'</span>)</span><br><span class="line"><span class="comment">#         break</span></span><br><span class="line">        <span class="keyword">if</span>(loss_pre - loss &gt; <span class="number">0</span>):</span><br><span class="line">            loss_pre = loss</span><br><span class="line">        <span class="keyword">else</span>:</span><br><span class="line">            <span class="keyword">break</span></span><br><span class="line">        <span class="keyword">if</span>(loss &lt; <span class="number">0.01</span>):</span><br><span class="line">            print(<span class="string">"converge"</span>)</span><br><span class="line">            <span class="keyword">break</span></span><br><span class="line">    <span class="keyword">return</span> P,Q</span><br></pre></td></tr></table></figure>
+<p> FunkSVD小解：先生成两个随机分解矩阵，然后讲这两个分解矩阵进行相乘，和原矩阵计算loss，这里用的是L2距离。然后进行矩阵更新，得到新的矩阵，矩阵<strong>更新的公式改天补上</strong>。整个算法中只有两个超参数，alpha，beta。<br> 这里做了一些小改进，有时候在梯度下降达不到指定标准，但是有没有到迭代的指定次数的时候，经过多次迭代，会出现loss增加的情况，我们加了一个终止条件，在loss增加时，停止迭代。</p>
+<p> 原文中，有个针对FunkSVD的测试</p>
+ <figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">import</span> numpy <span class="keyword">as</span> np</span><br><span class="line">M = [</span><br><span class="line">     [<span class="number">5</span>,<span class="number">3</span>,<span class="number">0</span>,<span class="number">1</span>],</span><br><span class="line">     [<span class="number">4</span>,<span class="number">0</span>,<span class="number">3</span>,<span class="number">1</span>],</span><br><span class="line">     [<span class="number">1</span>,<span class="number">1</span>,<span class="number">0</span>,<span class="number">5</span>],</span><br><span class="line">     [<span class="number">1</span>,<span class="number">0</span>,<span class="number">0</span>,<span class="number">4</span>],</span><br><span class="line">     [<span class="number">0</span>,<span class="number">1</span>,<span class="number">5</span>,<span class="number">4</span>],</span><br><span class="line">    ]</span><br><span class="line"></span><br><span class="line">M = np.array(M)</span><br><span class="line"></span><br><span class="line"><span class="string">"""m =5 n = 4 k = 2"""</span></span><br><span class="line">P = np.random.rand(<span class="number">5</span>,<span class="number">2</span>)</span><br><span class="line">Q = np.random.rand(<span class="number">4</span>,<span class="number">2</span>)</span><br><span class="line"></span><br><span class="line">pre_P,pre_Q = svd(M,P,Q,<span class="number">2</span>)</span><br><span class="line"></span><br><span class="line">np.dot(pre_P,pre_Q.T)</span><br></pre></td></tr></table></figure>
+ <figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">array([[<span class="number">4.98506476</span>, <span class="number">2.90980407</span>, <span class="number">3.76531449</span>, <span class="number">1.02101576</span>],</span><br><span class="line">      [<span class="number">3.8656883</span> , <span class="number">2.26213406</span>, <span class="number">3.07091838</span>, <span class="number">0.94917504</span>],</span><br><span class="line">      [<span class="number">1.10000629</span>, <span class="number">0.81308982</span>, <span class="number">5.35203553</span>, <span class="number">4.93601484</span>],</span><br><span class="line">      [<span class="number">0.99239494</span>, <span class="number">0.71485217</span>, <span class="number">4.33420736</span>, <span class="number">3.93816514</span>],</span><br><span class="line">      [<span class="number">1.80929531</span>, <span class="number">1.18877909</span>, <span class="number">4.87452097</span>, <span class="number">4.02555602</span>]])</span><br></pre></td></tr></table></figure>
+<ol start="5">
+<li><p>结果<br>经过FunkSVD函数的分解，我们得到两个矩阵，对这两个矩阵的相乘，得到对整个推荐矩阵。这个矩阵就系统过滤的结果，我们把一个稀疏矩阵进行分解，然后将结果相乘，得到一个“填满”的矩阵，然后根据这个填充好的矩阵里，用户对商品的rating，给用户的推荐相应的商品。</p>
+</li>
+<li><p>Todo</p>
+</li>
+</ol>
+<ul>
+<li style="list-style: none"><input type="checkbox"> SVD原理</li>
+<li style="list-style: none"><input type="checkbox"> FunkSVD中超参数设置alpha，beta</li>
+<li style="list-style: none"><input type="checkbox"> 初始随机过程，会不会对最后的结果造成影响，会不会形成不同的结果。</li>
+<li style="list-style: none"><input type="checkbox"> python对dataframe遍历的优化</li>
+<li style="list-style: none"><input type="checkbox"> 最开始得到用户对商品评分的过程中，几个指标的weight是不是应该有所偏好。</li>
+</ul>
+<h2 id="Reference"><a href="#Reference" class="headerlink" title="Reference"></a>Reference</h2><ol>
+<li><a href="https://blog.csdn.net/js54100804/article/details/79669006" target="_blank" rel="noopener">https://blog.csdn.net/js54100804/article/details/79669006</a></li>
+</ol>
+
+      
+    </div>
+    <footer class="article-footer">
+      <a data-url="http://yoursite.com/2018/05/16/funkSVD/" data-id="cjhbvpac00004n5kebbw6ridw" class="article-share-link">Share</a>
+      
+      
+  <ul class="article-tag-list"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/ML/">ML</a></li><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/Recommend/">Recommend</a></li></ul>
+
+    </footer>
+  </div>
+  
+    
+<nav id="article-nav">
+  
+    <a href="/2018/05/17/想法1/" id="article-nav-newer" class="article-nav-link-wrap">
+      <strong class="article-nav-caption">Newer</strong>
+      <div class="article-nav-title">
+        
+          想法1
+        
+      </div>
+    </a>
+  
+  
+    <a href="/2018/05/16/HousePricePrediction/" id="article-nav-older" class="article-nav-link-wrap">
+      <strong class="article-nav-caption">Older</strong>
+      <div class="article-nav-title">HousePricePrediction</div>
+    </a>
+  
+</nav>
+
+  
+</article>
+
+</section>
+        
+          <aside id="sidebar">
+  
+    
+
+  
+    
+  <div class="widget-wrap">
+    <h3 class="widget-title">Tags</h3>
+    <div class="widget">
+      <ul class="tag-list"><li class="tag-list-item"><a class="tag-list-link" href="/tags/Computer-Vision/">Computer Vision</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/ML/">ML</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/OpenCV/">OpenCV</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Python/">Python</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Recommend/">Recommend</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/kaggle/">kaggle</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/想法/">想法</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/源码阅读/">源码阅读</a></li></ul>
+    </div>
+  </div>
+
+
+  
+    
+  <div class="widget-wrap">
+    <h3 class="widget-title">Tag Cloud</h3>
+    <div class="widget tagcloud">
+      <a href="/tags/Computer-Vision/" style="font-size: 10px;">Computer Vision</a> <a href="/tags/ML/" style="font-size: 10px;">ML</a> <a href="/tags/OpenCV/" style="font-size: 10px;">OpenCV</a> <a href="/tags/Python/" style="font-size: 10px;">Python</a> <a href="/tags/Recommend/" style="font-size: 10px;">Recommend</a> <a href="/tags/kaggle/" style="font-size: 20px;">kaggle</a> <a href="/tags/想法/" style="font-size: 10px;">想法</a> <a href="/tags/源码阅读/" style="font-size: 10px;">源码阅读</a>
+    </div>
+  </div>
+
+  
+    
+  <div class="widget-wrap">
+    <h3 class="widget-title">Archives</h3>
+    <div class="widget">
+      <ul class="archive-list"><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/05/">May 2018</a></li></ul>
+    </div>
+  </div>
+
+
+  
+    
+  <div class="widget-wrap">
+    <h3 class="widget-title">Recent Posts</h3>
+    <div class="widget">
+      <ul>
+        
+          <li>
+            <a href="/2018/05/19/车道线检测源码阅读/">车道线检测源码阅读</a>
+          </li>
+        
+          <li>
+            <a href="/2018/05/18/车道线检测资料/">车道线检测资料</a>
+          </li>
+        
+          <li>
+            <a href="/2018/05/18/Python问题汇总-updating/">Python问题汇总(updating)</a>
+          </li>
+        
+          <li>
+            <a href="/2018/05/17/想法1/">想法1</a>
+          </li>
+        
+          <li>
+            <a href="/2018/05/16/funkSVD/">FunkSVD</a>
+          </li>
+        
+      </ul>
+    </div>
+  </div>
+
+  
+</aside>
+        
+      </div>
+      <footer id="footer">
+  
+  <div class="outer">
+    <div id="footer-info" class="inner">
+      &copy; 2018 John Doe<br>
+      Powered by <a href="http://hexo.io/" target="_blank">Hexo</a>
+    </div>
+  </div>
+</footer>
+    </div>
+    <nav id="mobile-nav">
+  
+    <a href="/" class="mobile-nav-link">Home</a>
+  
+    <a href="/archives" class="mobile-nav-link">Archives</a>
+  
+</nav>
+    
+
+<script src="//ajax.googleapis.com/ajax/libs/jquery/2.0.3/jquery.min.js"></script>
+
+
+  <link rel="stylesheet" href="/fancybox/jquery.fancybox.css">
+  <script src="/fancybox/jquery.fancybox.pack.js"></script>
+
+
+<script src="/js/script.js"></script>
+
+
+
+  </div>
+</body>
+</html>

@@ -1,0 +1,308 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  
+
+  
+  <title>车道线检测源码阅读 | Hexo</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+  <meta name="description" content="To Be Continue阅读顺序 首先从processingImage.py开始，这可以算个入口函数，会调用在utils.py中写好的函数 utils.py，这个是项目的关键部分，相机的校正，阈值过滤，透视变换，检测车道边界，计算车道曲率及车辆相对车道中心位置，处理原图，展示信息等函数都在这个模块。  English Word   English Chinese     Perspective">
+<meta name="keywords" content="源码阅读">
+<meta property="og:type" content="article">
+<meta property="og:title" content="车道线检测源码阅读">
+<meta property="og:url" content="http://yoursite.com/2018/05/19/车道线检测源码阅读/index.html">
+<meta property="og:site_name" content="Hexo">
+<meta property="og:description" content="To Be Continue阅读顺序 首先从processingImage.py开始，这可以算个入口函数，会调用在utils.py中写好的函数 utils.py，这个是项目的关键部分，相机的校正，阈值过滤，透视变换，检测车道边界，计算车道曲率及车辆相对车道中心位置，处理原图，展示信息等函数都在这个模块。  English Word   English Chinese     Perspective">
+<meta property="og:locale" content="default">
+<meta property="og:updated_time" content="2018-05-19T16:40:13.074Z">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="车道线检测源码阅读">
+<meta name="twitter:description" content="To Be Continue阅读顺序 首先从processingImage.py开始，这可以算个入口函数，会调用在utils.py中写好的函数 utils.py，这个是项目的关键部分，相机的校正，阈值过滤，透视变换，检测车道边界，计算车道曲率及车辆相对车道中心位置，处理原图，展示信息等函数都在这个模块。  English Word   English Chinese     Perspective">
+  
+    <link rel="alternate" href="/atom.xml" title="Hexo" type="application/atom+xml">
+  
+  
+    <link rel="icon" href="/favicon.png">
+  
+  
+    <link href="//fonts.googleapis.com/css?family=Source+Code+Pro" rel="stylesheet" type="text/css">
+  
+  <link rel="stylesheet" href="/css/style.css">
+</head>
+
+<body>
+  <div id="container">
+    <div id="wrap">
+      <header id="header">
+  <div id="banner"></div>
+  <div id="header-outer" class="outer">
+    <div id="header-title" class="inner">
+      <h1 id="logo-wrap">
+        <a href="/" id="logo">Hexo</a>
+      </h1>
+      
+    </div>
+    <div id="header-inner" class="inner">
+      <nav id="main-nav">
+        <a id="main-nav-toggle" class="nav-icon"></a>
+        
+          <a class="main-nav-link" href="/">Home</a>
+        
+          <a class="main-nav-link" href="/archives">Archives</a>
+        
+      </nav>
+      <nav id="sub-nav">
+        
+          <a id="nav-rss-link" class="nav-icon" href="/atom.xml" title="RSS Feed"></a>
+        
+        <a id="nav-search-btn" class="nav-icon" title="Search"></a>
+      </nav>
+      <div id="search-form-wrap">
+        <form action="//google.com/search" method="get" accept-charset="UTF-8" class="search-form"><input type="search" name="q" class="search-form-input" placeholder="Search"><button type="submit" class="search-form-submit">&#xF002;</button><input type="hidden" name="sitesearch" value="http://yoursite.com"></form>
+      </div>
+    </div>
+  </div>
+</header>
+      <div class="outer">
+        <section id="main"><article id="post-车道线检测源码阅读" class="article article-type-post" itemscope itemprop="blogPost">
+  <div class="article-meta">
+    <a href="/2018/05/19/车道线检测源码阅读/" class="article-date">
+  <time datetime="2018-05-19T15:32:55.000Z" itemprop="datePublished">2018-05-19</time>
+</a>
+    
+  </div>
+  <div class="article-inner">
+    
+    
+      <header class="article-header">
+        
+  
+    <h1 class="article-title" itemprop="name">
+      车道线检测源码阅读
+    </h1>
+  
+
+      </header>
+    
+    <div class="article-entry" itemprop="articleBody">
+      
+        <h2 id="To-Be-Continue"><a href="#To-Be-Continue" class="headerlink" title="To Be Continue"></a>To Be Continue</h2><h2 id="阅读顺序"><a href="#阅读顺序" class="headerlink" title="阅读顺序"></a>阅读顺序</h2><ol>
+<li>首先从processingImage.py开始，这可以算个入口函数，会调用在utils.py中写好的函数</li>
+<li>utils.py，这个是项目的关键部分，相机的校正，阈值过滤，透视变换，检测车道边界，计算车道曲率及车辆相对车道中心位置，处理原图，展示信息等函数都在这个模块。</li>
+</ol>
+<h2 id="English-Word"><a href="#English-Word" class="headerlink" title="English Word"></a>English Word</h2><table>
+<thead>
+<tr>
+<th>English</th>
+<th>Chinese</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Perspective</td>
+<td>透视</td>
+</tr>
+<tr>
+<td>undistorted</td>
+<td>无畸变的</td>
+</tr>
+</tbody>
+</table>
+<h2 id="源码详细解释"><a href="#源码详细解释" class="headerlink" title="源码详细解释"></a>源码详细解释</h2><h3 id="1-processImage-py"><a href="#1-processImage-py" class="headerlink" title="1. processImage.py"></a>1. processImage.py</h3><ul>
+<li><p>首先是导入相应模块</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">import</span> os</span><br><span class="line"><span class="keyword">import</span> cv2</span><br><span class="line"><span class="keyword">import</span> utils</span><br><span class="line"><span class="keyword">import</span> matplotlib.pyplot <span class="keyword">as</span> plt</span><br><span class="line"><span class="keyword">import</span> numpy <span class="keyword">as</span> np</span><br></pre></td></tr></table></figure>
+</li>
+<li><p>读取图片，其中第二句是得到图片的</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">cal_imgs = utils.get_images_by_dir(<span class="string">'camera_cal'</span>)</span><br><span class="line">object_points,img_points = utils.calibrate(cal_imgs,grid=(<span class="number">9</span>,<span class="number">6</span>))</span><br><span class="line">test_imgs = utils.get_images_by_dir(<span class="string">'new_test'</span>)</span><br></pre></td></tr></table></figure>
+</li>
+<li><p>讲图片修复成无畸变的</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">undistorted = []</span><br><span class="line"><span class="keyword">for</span> img <span class="keyword">in</span> test_imgs:</span><br><span class="line">    img = utils.cal_undistort(img,object_points,img_points)</span><br><span class="line">    undistorted.append(img)</span><br></pre></td></tr></table></figure>
+</li>
+<li><p>得到图像的透视变换</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line">trans_on_test=[]</span><br><span class="line"><span class="keyword">for</span> img <span class="keyword">in</span> undistorted:</span><br><span class="line">    src = np.float32([[(<span class="number">203</span>, <span class="number">720</span>), (<span class="number">585</span>, <span class="number">460</span>), (<span class="number">695</span>, <span class="number">460</span>), (<span class="number">1127</span>, <span class="number">720</span>)]])</span><br><span class="line">    dst = np.float32([[(<span class="number">320</span>, <span class="number">720</span>), (<span class="number">320</span>, <span class="number">0</span>), (<span class="number">960</span>, <span class="number">0</span>), (<span class="number">960</span>, <span class="number">720</span>)]])</span><br><span class="line">    M = cv2.getPerspectiveTransform(src, dst)</span><br><span class="line">    trans = cv2.warpPerspective(img, M, img.shape[<span class="number">1</span>::<span class="number">-1</span>], flags=cv2.INTER_LINEAR)</span><br><span class="line">    trans_on_test.append(trans)</span><br></pre></td></tr></table></figure>
+<p><strong>解释</strong>：这里使用”cv2.getPerspectiveTransform()”来获取变形矩阵(tranform matrix)，把阈值过滤后的二进制图片变形为鸟撒视角。<br>以下为定义的源点（source points）和目标点（destination points）<strong>为什么这么定义</strong>，然后使用”cv2.warpPerspective()”传入相关值获得变形图片(wrapped image)</p>
+</li>
+</ul>
+<table>
+<thead>
+<tr>
+<th>Source</th>
+<th>Destination</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>585, 460</td>
+<td>320, 0</td>
+</tr>
+<tr>
+<td>203, 720</td>
+<td>320, 720</td>
+</tr>
+<tr>
+<td>1127, 720</td>
+<td>960, 720</td>
+</tr>
+<tr>
+<td>695, 460</td>
+<td>960, 0</td>
+</tr>
+</tbody>
+</table>
+<ul>
+<li>阈值过滤，处理图像<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br></pre></td><td class="code"><pre><span class="line">thresh = []</span><br><span class="line">binary_wrapeds = []</span><br><span class="line">histogram = []</span><br><span class="line"><span class="keyword">for</span> img <span class="keyword">in</span> undistorted:</span><br><span class="line">    x_thresh = utils.abs_sobel_thresh(img, orient=<span class="string">'x'</span>, thresh_min=<span class="number">55</span>, thresh_max=<span class="number">100</span>)</span><br><span class="line">    mag_thresh = utils.mag_thresh(img, sobel_kernel=<span class="number">3</span>, mag_thresh=(<span class="number">70</span>, <span class="number">255</span>))</span><br><span class="line">    dir_thresh = utils.dir_threshold(img, sobel_kernel=<span class="number">3</span>, thresh=(<span class="number">0.7</span>, <span class="number">1.3</span>))</span><br><span class="line">    s_thresh = utils.hls_select(img,channel=<span class="string">'s'</span>,thresh=(<span class="number">160</span>, <span class="number">255</span>))</span><br><span class="line">    s_thresh_2 = utils.hls_select(img,channel=<span class="string">'s'</span>,thresh=(<span class="number">200</span>, <span class="number">240</span>))</span><br><span class="line">    </span><br><span class="line">    white_mask = utils.select_white(img)</span><br><span class="line">    yellow_mask = utils.select_yellow(img)</span><br><span class="line">  </span><br><span class="line">    combined = np.zeros_like(mag_thresh)</span><br><span class="line"><span class="comment">#    combined[(x_thresh==1) | ((mag_thresh == 1) &amp; (dir_thresh == 1)) | (s_thresh==1)] = 1</span></span><br><span class="line"><span class="comment">#    combined[((mag_thresh == 1) &amp; (dir_thresh == 1))] = 1</span></span><br><span class="line">    combined[((x_thresh == <span class="number">1</span>) | (s_thresh == <span class="number">1</span>)) | ((mag_thresh == <span class="number">1</span>) &amp; (dir_thresh == <span class="number">1</span>))| (white_mask&gt;<span class="number">0</span>)|(s_thresh_2 == <span class="number">1</span>) ]=<span class="number">1</span></span><br><span class="line">    </span><br><span class="line">    src = np.float32([[(<span class="number">203</span>, <span class="number">720</span>), (<span class="number">585</span>, <span class="number">460</span>), (<span class="number">695</span>, <span class="number">460</span>), (<span class="number">1127</span>, <span class="number">720</span>)]])</span><br><span class="line">    dst = np.float32([[(<span class="number">320</span>, <span class="number">720</span>), (<span class="number">320</span>, <span class="number">0</span>), (<span class="number">960</span>, <span class="number">0</span>), (<span class="number">960</span>, <span class="number">720</span>)]])</span><br><span class="line">    M = cv2.getPerspectiveTransform(src, dst)</span><br><span class="line">    binary_warped = cv2.warpPerspective(combined, M, img.shape[<span class="number">1</span>::<span class="number">-1</span>], flags=cv2.INTER_LINEAR)</span><br><span class="line">    </span><br><span class="line">    hist = np.sum(binary_warped[binary_warped.shape[<span class="number">0</span>]//<span class="number">2</span>:,:], axis=<span class="number">0</span>)</span><br><span class="line">    histogram.append(hist)</span><br><span class="line">    </span><br><span class="line">    binary_wrapeds.append(binary_warped)</span><br><span class="line">    </span><br><span class="line">    thresh.append(combined)</span><br></pre></td></tr></table></figure>
+</li>
+</ul>
+<h3 id="2-utils-py-实现函数的详细解释"><a href="#2-utils-py-实现函数的详细解释" class="headerlink" title="2. utils.py 实现函数的详细解释"></a>2. utils.py 实现函数的详细解释</h3><ul>
+<li><p>导入模块</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">import</span> numpy <span class="keyword">as</span> np</span><br><span class="line"><span class="keyword">import</span> os</span><br><span class="line"><span class="keyword">import</span> cv2</span><br><span class="line"><span class="keyword">import</span> matplotlib.pyplot <span class="keyword">as</span> plt</span><br><span class="line"><span class="keyword">import</span> matplotlib.image <span class="keyword">as</span> mpimg</span><br></pre></td></tr></table></figure>
+</li>
+<li><p>get_iamge_by_dir(dirname) 传入文件夹路径，导入文件夹中的所有图片</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">def</span> <span class="title">get_images_by_dir</span><span class="params">(dirname)</span>:</span></span><br><span class="line">    img_names = os.listdir(dirname)</span><br><span class="line">    img_paths = [dirname+<span class="string">'/'</span>+img_name <span class="keyword">for</span> img_name <span class="keyword">in</span> img_names]</span><br><span class="line">    imgs = [cv2.imread(path) <span class="keyword">for</span> path <span class="keyword">in</span> img_paths]</span><br><span class="line">    <span class="keyword">return</span> imgs</span><br></pre></td></tr></table></figure>
+</li>
+<li><p>calibrate(images,grid=(9,6)) 传入图片list，返回object_points, img_points</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">def</span> <span class="title">calibrate</span><span class="params">(images,grid=<span class="params">(<span class="number">9</span>,<span class="number">6</span>)</span>)</span>:</span></span><br><span class="line">   object_points=[]</span><br><span class="line">   img_points = []</span><br><span class="line">   <span class="keyword">for</span> img <span class="keyword">in</span> images:</span><br><span class="line">       object_point = np.zeros( (grid[<span class="number">0</span>]*grid[<span class="number">1</span>],<span class="number">3</span>),np.float32 )</span><br><span class="line">       object_point[:,:<span class="number">2</span>]= np.mgrid[<span class="number">0</span>:grid[<span class="number">0</span>],<span class="number">0</span>:grid[<span class="number">1</span>]].T.reshape(<span class="number">-1</span>,<span class="number">2</span>)</span><br><span class="line">       gray = cv2.cvtColor(img,cv2.COLOR_BGR2GRAY)</span><br><span class="line">       ret, corners = cv2.findChessboardCorners(gray, grid, <span class="keyword">None</span>)</span><br><span class="line">       <span class="keyword">if</span> ret:</span><br><span class="line">           object_points.append(object_point)</span><br><span class="line">           img_points.append(corners)</span><br><span class="line">   <span class="keyword">return</span> object_points,img_points</span><br></pre></td></tr></table></figure>
+<p>这里有些疑问，为什么要计算这些，返回的这连个points，是一张图片的还是图片list的</p>
+</li>
+<li><p>cal_undistort(img, objpoints, imgpoints) 将图片修复成无畸变</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">def</span> <span class="title">cal_undistort</span><span class="params">(img, objpoints, imgpoints)</span>:</span></span><br><span class="line">   <span class="comment"># Use cv2.calibrateCamera() and cv2.undistort()</span></span><br><span class="line">   ret, mtx, dist, rvecs, tvecs = cv2.calibrateCamera(objpoints, imgpoints, img.shape[<span class="number">1</span>::<span class="number">-1</span>], <span class="keyword">None</span>, <span class="keyword">None</span>)</span><br><span class="line">   dst = cv2.undistort(img, mtx, dist, <span class="keyword">None</span>, mtx)</span><br><span class="line">   <span class="keyword">return</span> dst</span><br></pre></td></tr></table></figure>
+<p>仍然不理解objpoints，imgpoints的形式</p>
+</li>
+<li><p>get_M_Minv() 透视变换，定义方法获取变形矩阵和逆变形矩阵</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">def</span> <span class="title">get_M_Minv</span><span class="params">()</span>:</span></span><br><span class="line">    src = np.float32([[(<span class="number">203</span>, <span class="number">720</span>), (<span class="number">585</span>, <span class="number">460</span>), (<span class="number">695</span>, <span class="number">460</span>), (<span class="number">1127</span>, <span class="number">720</span>)]])</span><br><span class="line">    dst = np.float32([[(<span class="number">320</span>, <span class="number">720</span>), (<span class="number">320</span>, <span class="number">0</span>), (<span class="number">960</span>, <span class="number">0</span>), (<span class="number">960</span>, <span class="number">720</span>)]])</span><br><span class="line">    M = cv2.getPerspectiveTransform(src, dst)</span><br><span class="line">    Minv = cv2.getPerspectiveTransform(dst,src)</span><br><span class="line">    <span class="keyword">return</span> M,Minv</span><br></pre></td></tr></table></figure>
+</li>
+</ul>
+<h2 id="Reference"><a href="#Reference" class="headerlink" title="Reference"></a>Reference</h2><ol>
+<li><a href="https://github.com/yang1688899/CarND-Advanced-Lane-Lines/blob/master/writeup-chinese.md" target="_blank" rel="noopener">https://github.com/yang1688899/CarND-Advanced-Lane-Lines/blob/master/writeup-chinese.md</a></li>
+<li>推荐个Github上阅读项目源码插件：<strong>Octotree</strong></li>
+</ol>
+
+      
+    </div>
+    <footer class="article-footer">
+      <a data-url="http://yoursite.com/2018/05/19/车道线检测源码阅读/" data-id="cjhdjxzei0000sqkeie72yy3y" class="article-share-link">Share</a>
+      
+      
+  <ul class="article-tag-list"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/源码阅读/">源码阅读</a></li></ul>
+
+    </footer>
+  </div>
+  
+    
+<nav id="article-nav">
+  
+  
+    <a href="/2018/05/18/车道线检测资料/" id="article-nav-older" class="article-nav-link-wrap">
+      <strong class="article-nav-caption">Older</strong>
+      <div class="article-nav-title">车道线检测资料</div>
+    </a>
+  
+</nav>
+
+  
+</article>
+
+</section>
+        
+          <aside id="sidebar">
+  
+    
+
+  
+    
+  <div class="widget-wrap">
+    <h3 class="widget-title">Tags</h3>
+    <div class="widget">
+      <ul class="tag-list"><li class="tag-list-item"><a class="tag-list-link" href="/tags/Computer-Vision/">Computer Vision</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/ML/">ML</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/OpenCV/">OpenCV</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Python/">Python</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Recommend/">Recommend</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/kaggle/">kaggle</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/想法/">想法</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/源码阅读/">源码阅读</a></li></ul>
+    </div>
+  </div>
+
+
+  
+    
+  <div class="widget-wrap">
+    <h3 class="widget-title">Tag Cloud</h3>
+    <div class="widget tagcloud">
+      <a href="/tags/Computer-Vision/" style="font-size: 10px;">Computer Vision</a> <a href="/tags/ML/" style="font-size: 10px;">ML</a> <a href="/tags/OpenCV/" style="font-size: 10px;">OpenCV</a> <a href="/tags/Python/" style="font-size: 10px;">Python</a> <a href="/tags/Recommend/" style="font-size: 10px;">Recommend</a> <a href="/tags/kaggle/" style="font-size: 20px;">kaggle</a> <a href="/tags/想法/" style="font-size: 10px;">想法</a> <a href="/tags/源码阅读/" style="font-size: 10px;">源码阅读</a>
+    </div>
+  </div>
+
+  
+    
+  <div class="widget-wrap">
+    <h3 class="widget-title">Archives</h3>
+    <div class="widget">
+      <ul class="archive-list"><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/05/">May 2018</a></li></ul>
+    </div>
+  </div>
+
+
+  
+    
+  <div class="widget-wrap">
+    <h3 class="widget-title">Recent Posts</h3>
+    <div class="widget">
+      <ul>
+        
+          <li>
+            <a href="/2018/05/19/车道线检测源码阅读/">车道线检测源码阅读</a>
+          </li>
+        
+          <li>
+            <a href="/2018/05/18/车道线检测资料/">车道线检测资料</a>
+          </li>
+        
+          <li>
+            <a href="/2018/05/18/Python问题汇总-updating/">Python问题汇总(updating)</a>
+          </li>
+        
+          <li>
+            <a href="/2018/05/17/想法1/">想法1</a>
+          </li>
+        
+          <li>
+            <a href="/2018/05/16/funkSVD/">FunkSVD</a>
+          </li>
+        
+      </ul>
+    </div>
+  </div>
+
+  
+</aside>
+        
+      </div>
+      <footer id="footer">
+  
+  <div class="outer">
+    <div id="footer-info" class="inner">
+      &copy; 2018 John Doe<br>
+      Powered by <a href="http://hexo.io/" target="_blank">Hexo</a>
+    </div>
+  </div>
+</footer>
+    </div>
+    <nav id="mobile-nav">
+  
+    <a href="/" class="mobile-nav-link">Home</a>
+  
+    <a href="/archives" class="mobile-nav-link">Archives</a>
+  
+</nav>
+    
+
+<script src="//ajax.googleapis.com/ajax/libs/jquery/2.0.3/jquery.min.js"></script>
+
+
+  <link rel="stylesheet" href="/fancybox/jquery.fancybox.css">
+  <script src="/fancybox/jquery.fancybox.pack.js"></script>
+
+
+<script src="/js/script.js"></script>
+
+
+
+  </div>
+</body>
+</html>

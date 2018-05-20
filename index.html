@@ -1,0 +1,647 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  
+
+  
+  <title>Hexo</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+  <meta property="og:type" content="website">
+<meta property="og:title" content="Hexo">
+<meta property="og:url" content="http://yoursite.com/index.html">
+<meta property="og:site_name" content="Hexo">
+<meta property="og:locale" content="default">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="Hexo">
+  
+    <link rel="alternate" href="/atom.xml" title="Hexo" type="application/atom+xml">
+  
+  
+    <link rel="icon" href="/favicon.png">
+  
+  
+    <link href="//fonts.googleapis.com/css?family=Source+Code+Pro" rel="stylesheet" type="text/css">
+  
+  <link rel="stylesheet" href="/css/style.css">
+</head>
+
+<body>
+  <div id="container">
+    <div id="wrap">
+      <header id="header">
+  <div id="banner"></div>
+  <div id="header-outer" class="outer">
+    <div id="header-title" class="inner">
+      <h1 id="logo-wrap">
+        <a href="/" id="logo">Hexo</a>
+      </h1>
+      
+    </div>
+    <div id="header-inner" class="inner">
+      <nav id="main-nav">
+        <a id="main-nav-toggle" class="nav-icon"></a>
+        
+          <a class="main-nav-link" href="/">Home</a>
+        
+          <a class="main-nav-link" href="/archives">Archives</a>
+        
+      </nav>
+      <nav id="sub-nav">
+        
+          <a id="nav-rss-link" class="nav-icon" href="/atom.xml" title="RSS Feed"></a>
+        
+        <a id="nav-search-btn" class="nav-icon" title="Search"></a>
+      </nav>
+      <div id="search-form-wrap">
+        <form action="//google.com/search" method="get" accept-charset="UTF-8" class="search-form"><input type="search" name="q" class="search-form-input" placeholder="Search"><button type="submit" class="search-form-submit">&#xF002;</button><input type="hidden" name="sitesearch" value="http://yoursite.com"></form>
+      </div>
+    </div>
+  </div>
+</header>
+      <div class="outer">
+        <section id="main">
+  
+    <article id="post-车道线检测源码阅读" class="article article-type-post" itemscope itemprop="blogPost">
+  <div class="article-meta">
+    <a href="/2018/05/19/车道线检测源码阅读/" class="article-date">
+  <time datetime="2018-05-19T15:32:55.000Z" itemprop="datePublished">2018-05-19</time>
+</a>
+    
+  </div>
+  <div class="article-inner">
+    
+    
+      <header class="article-header">
+        
+  
+    <h1 itemprop="name">
+      <a class="article-title" href="/2018/05/19/车道线检测源码阅读/">车道线检测源码阅读</a>
+    </h1>
+  
+
+      </header>
+    
+    <div class="article-entry" itemprop="articleBody">
+      
+        <h2 id="To-Be-Continue"><a href="#To-Be-Continue" class="headerlink" title="To Be Continue"></a>To Be Continue</h2><h2 id="阅读顺序"><a href="#阅读顺序" class="headerlink" title="阅读顺序"></a>阅读顺序</h2><ol>
+<li>首先从processingImage.py开始，这可以算个入口函数，会调用在utils.py中写好的函数</li>
+<li>utils.py，这个是项目的关键部分，相机的校正，阈值过滤，透视变换，检测车道边界，计算车道曲率及车辆相对车道中心位置，处理原图，展示信息等函数都在这个模块。</li>
+</ol>
+<h2 id="English-Word"><a href="#English-Word" class="headerlink" title="English Word"></a>English Word</h2><table>
+<thead>
+<tr>
+<th>English</th>
+<th>Chinese</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Perspective</td>
+<td>透视</td>
+</tr>
+<tr>
+<td>undistorted</td>
+<td>无畸变的</td>
+</tr>
+</tbody>
+</table>
+<h2 id="源码详细解释"><a href="#源码详细解释" class="headerlink" title="源码详细解释"></a>源码详细解释</h2><h3 id="1-processImage-py"><a href="#1-processImage-py" class="headerlink" title="1. processImage.py"></a>1. processImage.py</h3><ul>
+<li><p>首先是导入相应模块</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">import</span> os</span><br><span class="line"><span class="keyword">import</span> cv2</span><br><span class="line"><span class="keyword">import</span> utils</span><br><span class="line"><span class="keyword">import</span> matplotlib.pyplot <span class="keyword">as</span> plt</span><br><span class="line"><span class="keyword">import</span> numpy <span class="keyword">as</span> np</span><br></pre></td></tr></table></figure>
+</li>
+<li><p>读取图片，其中第二句是得到图片的</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">cal_imgs = utils.get_images_by_dir(<span class="string">'camera_cal'</span>)</span><br><span class="line">object_points,img_points = utils.calibrate(cal_imgs,grid=(<span class="number">9</span>,<span class="number">6</span>))</span><br><span class="line">test_imgs = utils.get_images_by_dir(<span class="string">'new_test'</span>)</span><br></pre></td></tr></table></figure>
+</li>
+<li><p>讲图片修复成无畸变的</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">undistorted = []</span><br><span class="line"><span class="keyword">for</span> img <span class="keyword">in</span> test_imgs:</span><br><span class="line">    img = utils.cal_undistort(img,object_points,img_points)</span><br><span class="line">    undistorted.append(img)</span><br></pre></td></tr></table></figure>
+</li>
+<li><p>得到图像的透视变换</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line">trans_on_test=[]</span><br><span class="line"><span class="keyword">for</span> img <span class="keyword">in</span> undistorted:</span><br><span class="line">    src = np.float32([[(<span class="number">203</span>, <span class="number">720</span>), (<span class="number">585</span>, <span class="number">460</span>), (<span class="number">695</span>, <span class="number">460</span>), (<span class="number">1127</span>, <span class="number">720</span>)]])</span><br><span class="line">    dst = np.float32([[(<span class="number">320</span>, <span class="number">720</span>), (<span class="number">320</span>, <span class="number">0</span>), (<span class="number">960</span>, <span class="number">0</span>), (<span class="number">960</span>, <span class="number">720</span>)]])</span><br><span class="line">    M = cv2.getPerspectiveTransform(src, dst)</span><br><span class="line">    trans = cv2.warpPerspective(img, M, img.shape[<span class="number">1</span>::<span class="number">-1</span>], flags=cv2.INTER_LINEAR)</span><br><span class="line">    trans_on_test.append(trans)</span><br></pre></td></tr></table></figure>
+<p><strong>解释</strong>：这里使用”cv2.getPerspectiveTransform()”来获取变形矩阵(tranform matrix)，把阈值过滤后的二进制图片变形为鸟撒视角。<br>以下为定义的源点（source points）和目标点（destination points）<strong>为什么这么定义</strong>，然后使用”cv2.warpPerspective()”传入相关值获得变形图片(wrapped image)</p>
+</li>
+</ul>
+<table>
+<thead>
+<tr>
+<th>Source</th>
+<th>Destination</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>585, 460</td>
+<td>320, 0</td>
+</tr>
+<tr>
+<td>203, 720</td>
+<td>320, 720</td>
+</tr>
+<tr>
+<td>1127, 720</td>
+<td>960, 720</td>
+</tr>
+<tr>
+<td>695, 460</td>
+<td>960, 0</td>
+</tr>
+</tbody>
+</table>
+<ul>
+<li>阈值过滤，处理图像<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br></pre></td><td class="code"><pre><span class="line">thresh = []</span><br><span class="line">binary_wrapeds = []</span><br><span class="line">histogram = []</span><br><span class="line"><span class="keyword">for</span> img <span class="keyword">in</span> undistorted:</span><br><span class="line">    x_thresh = utils.abs_sobel_thresh(img, orient=<span class="string">'x'</span>, thresh_min=<span class="number">55</span>, thresh_max=<span class="number">100</span>)</span><br><span class="line">    mag_thresh = utils.mag_thresh(img, sobel_kernel=<span class="number">3</span>, mag_thresh=(<span class="number">70</span>, <span class="number">255</span>))</span><br><span class="line">    dir_thresh = utils.dir_threshold(img, sobel_kernel=<span class="number">3</span>, thresh=(<span class="number">0.7</span>, <span class="number">1.3</span>))</span><br><span class="line">    s_thresh = utils.hls_select(img,channel=<span class="string">'s'</span>,thresh=(<span class="number">160</span>, <span class="number">255</span>))</span><br><span class="line">    s_thresh_2 = utils.hls_select(img,channel=<span class="string">'s'</span>,thresh=(<span class="number">200</span>, <span class="number">240</span>))</span><br><span class="line">    </span><br><span class="line">    white_mask = utils.select_white(img)</span><br><span class="line">    yellow_mask = utils.select_yellow(img)</span><br><span class="line">  </span><br><span class="line">    combined = np.zeros_like(mag_thresh)</span><br><span class="line"><span class="comment">#    combined[(x_thresh==1) | ((mag_thresh == 1) &amp; (dir_thresh == 1)) | (s_thresh==1)] = 1</span></span><br><span class="line"><span class="comment">#    combined[((mag_thresh == 1) &amp; (dir_thresh == 1))] = 1</span></span><br><span class="line">    combined[((x_thresh == <span class="number">1</span>) | (s_thresh == <span class="number">1</span>)) | ((mag_thresh == <span class="number">1</span>) &amp; (dir_thresh == <span class="number">1</span>))| (white_mask&gt;<span class="number">0</span>)|(s_thresh_2 == <span class="number">1</span>) ]=<span class="number">1</span></span><br><span class="line">    </span><br><span class="line">    src = np.float32([[(<span class="number">203</span>, <span class="number">720</span>), (<span class="number">585</span>, <span class="number">460</span>), (<span class="number">695</span>, <span class="number">460</span>), (<span class="number">1127</span>, <span class="number">720</span>)]])</span><br><span class="line">    dst = np.float32([[(<span class="number">320</span>, <span class="number">720</span>), (<span class="number">320</span>, <span class="number">0</span>), (<span class="number">960</span>, <span class="number">0</span>), (<span class="number">960</span>, <span class="number">720</span>)]])</span><br><span class="line">    M = cv2.getPerspectiveTransform(src, dst)</span><br><span class="line">    binary_warped = cv2.warpPerspective(combined, M, img.shape[<span class="number">1</span>::<span class="number">-1</span>], flags=cv2.INTER_LINEAR)</span><br><span class="line">    </span><br><span class="line">    hist = np.sum(binary_warped[binary_warped.shape[<span class="number">0</span>]//<span class="number">2</span>:,:], axis=<span class="number">0</span>)</span><br><span class="line">    histogram.append(hist)</span><br><span class="line">    </span><br><span class="line">    binary_wrapeds.append(binary_warped)</span><br><span class="line">    </span><br><span class="line">    thresh.append(combined)</span><br></pre></td></tr></table></figure>
+</li>
+</ul>
+<h3 id="2-utils-py-实现函数的详细解释"><a href="#2-utils-py-实现函数的详细解释" class="headerlink" title="2. utils.py 实现函数的详细解释"></a>2. utils.py 实现函数的详细解释</h3><ul>
+<li><p>导入模块</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">import</span> numpy <span class="keyword">as</span> np</span><br><span class="line"><span class="keyword">import</span> os</span><br><span class="line"><span class="keyword">import</span> cv2</span><br><span class="line"><span class="keyword">import</span> matplotlib.pyplot <span class="keyword">as</span> plt</span><br><span class="line"><span class="keyword">import</span> matplotlib.image <span class="keyword">as</span> mpimg</span><br></pre></td></tr></table></figure>
+</li>
+<li><p>get_iamge_by_dir(dirname) 传入文件夹路径，导入文件夹中的所有图片</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">def</span> <span class="title">get_images_by_dir</span><span class="params">(dirname)</span>:</span></span><br><span class="line">    img_names = os.listdir(dirname)</span><br><span class="line">    img_paths = [dirname+<span class="string">'/'</span>+img_name <span class="keyword">for</span> img_name <span class="keyword">in</span> img_names]</span><br><span class="line">    imgs = [cv2.imread(path) <span class="keyword">for</span> path <span class="keyword">in</span> img_paths]</span><br><span class="line">    <span class="keyword">return</span> imgs</span><br></pre></td></tr></table></figure>
+</li>
+<li><p>calibrate(images,grid=(9,6)) 传入图片list，返回object_points, img_points</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">def</span> <span class="title">calibrate</span><span class="params">(images,grid=<span class="params">(<span class="number">9</span>,<span class="number">6</span>)</span>)</span>:</span></span><br><span class="line">   object_points=[]</span><br><span class="line">   img_points = []</span><br><span class="line">   <span class="keyword">for</span> img <span class="keyword">in</span> images:</span><br><span class="line">       object_point = np.zeros( (grid[<span class="number">0</span>]*grid[<span class="number">1</span>],<span class="number">3</span>),np.float32 )</span><br><span class="line">       object_point[:,:<span class="number">2</span>]= np.mgrid[<span class="number">0</span>:grid[<span class="number">0</span>],<span class="number">0</span>:grid[<span class="number">1</span>]].T.reshape(<span class="number">-1</span>,<span class="number">2</span>)</span><br><span class="line">       gray = cv2.cvtColor(img,cv2.COLOR_BGR2GRAY)</span><br><span class="line">       ret, corners = cv2.findChessboardCorners(gray, grid, <span class="keyword">None</span>)</span><br><span class="line">       <span class="keyword">if</span> ret:</span><br><span class="line">           object_points.append(object_point)</span><br><span class="line">           img_points.append(corners)</span><br><span class="line">   <span class="keyword">return</span> object_points,img_points</span><br></pre></td></tr></table></figure>
+<p>这里有些疑问，为什么要计算这些，返回的这连个points，是一张图片的还是图片list的</p>
+</li>
+<li><p>cal_undistort(img, objpoints, imgpoints) 将图片修复成无畸变</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">def</span> <span class="title">cal_undistort</span><span class="params">(img, objpoints, imgpoints)</span>:</span></span><br><span class="line">   <span class="comment"># Use cv2.calibrateCamera() and cv2.undistort()</span></span><br><span class="line">   ret, mtx, dist, rvecs, tvecs = cv2.calibrateCamera(objpoints, imgpoints, img.shape[<span class="number">1</span>::<span class="number">-1</span>], <span class="keyword">None</span>, <span class="keyword">None</span>)</span><br><span class="line">   dst = cv2.undistort(img, mtx, dist, <span class="keyword">None</span>, mtx)</span><br><span class="line">   <span class="keyword">return</span> dst</span><br></pre></td></tr></table></figure>
+<p>仍然不理解objpoints，imgpoints的形式</p>
+</li>
+<li><p>get_M_Minv() 透视变换，定义方法获取变形矩阵和逆变形矩阵</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">def</span> <span class="title">get_M_Minv</span><span class="params">()</span>:</span></span><br><span class="line">    src = np.float32([[(<span class="number">203</span>, <span class="number">720</span>), (<span class="number">585</span>, <span class="number">460</span>), (<span class="number">695</span>, <span class="number">460</span>), (<span class="number">1127</span>, <span class="number">720</span>)]])</span><br><span class="line">    dst = np.float32([[(<span class="number">320</span>, <span class="number">720</span>), (<span class="number">320</span>, <span class="number">0</span>), (<span class="number">960</span>, <span class="number">0</span>), (<span class="number">960</span>, <span class="number">720</span>)]])</span><br><span class="line">    M = cv2.getPerspectiveTransform(src, dst)</span><br><span class="line">    Minv = cv2.getPerspectiveTransform(dst,src)</span><br><span class="line">    <span class="keyword">return</span> M,Minv</span><br></pre></td></tr></table></figure>
+</li>
+</ul>
+<h2 id="Reference"><a href="#Reference" class="headerlink" title="Reference"></a>Reference</h2><ol>
+<li><a href="https://github.com/yang1688899/CarND-Advanced-Lane-Lines/blob/master/writeup-chinese.md" target="_blank" rel="noopener">https://github.com/yang1688899/CarND-Advanced-Lane-Lines/blob/master/writeup-chinese.md</a></li>
+<li>推荐个Github上阅读项目源码插件：<strong>Octotree</strong></li>
+</ol>
+
+      
+    </div>
+    <footer class="article-footer">
+      <a data-url="http://yoursite.com/2018/05/19/车道线检测源码阅读/" data-id="cjhdjxzei0000sqkeie72yy3y" class="article-share-link">Share</a>
+      
+      
+  <ul class="article-tag-list"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/源码阅读/">源码阅读</a></li></ul>
+
+    </footer>
+  </div>
+  
+</article>
+
+
+  
+    <article id="post-车道线检测资料" class="article article-type-post" itemscope itemprop="blogPost">
+  <div class="article-meta">
+    <a href="/2018/05/18/车道线检测资料/" class="article-date">
+  <time datetime="2018-05-18T11:40:16.000Z" itemprop="datePublished">2018-05-18</time>
+</a>
+    
+  </div>
+  <div class="article-inner">
+    
+    
+      <header class="article-header">
+        
+  
+    <h1 itemprop="name">
+      <a class="article-title" href="/2018/05/18/车道线检测资料/">车道线检测资料</a>
+    </h1>
+  
+
+      </header>
+    
+    <div class="article-entry" itemprop="articleBody">
+      
+        <h2 id="Key-Point"><a href="#Key-Point" class="headerlink" title="Key Point"></a>Key Point</h2><ol>
+<li>校正图片</li>
+<li>图片处理，得到车道线的二进制图</li>
+<li>透视变换得到二进制图的鸟瞰图(birds-eye view)</li>
+<li>检测车道线的像素，并用它来测出车道边界</li>
+<li>计算车道的曲率，及车辆相对车道中央的位置</li>
+<li>处理图片，展示</li>
+</ol>
+<p>想法:</p>
+<ul>
+<li>优化车道线识别算法</li>
+<li>车辆高速运行对摄像机成像的影响（会轻微变形）</li>
+</ul>
+<h2 id="Reference"><a href="#Reference" class="headerlink" title="Reference:"></a>Reference:</h2><ol>
+<li><a href="https://github.com/yang1688899/CarND-Advanced-Lane-Lines" target="_blank" rel="noopener">https://github.com/yang1688899/CarND-Advanced-Lane-Lines</a></li>
+<li><a href="https://blog.csdn.net/Young_Gy/article/details/75194914" target="_blank" rel="noopener">https://blog.csdn.net/Young_Gy/article/details/75194914</a></li>
+</ol>
+
+      
+    </div>
+    <footer class="article-footer">
+      <a data-url="http://yoursite.com/2018/05/18/车道线检测资料/" data-id="cjhbw6xap000in5ke2uk85tjo" class="article-share-link">Share</a>
+      
+      
+  <ul class="article-tag-list"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/Computer-Vision/">Computer Vision</a></li><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/OpenCV/">OpenCV</a></li></ul>
+
+    </footer>
+  </div>
+  
+</article>
+
+
+  
+    <article id="post-Python问题汇总-updating" class="article article-type-post" itemscope itemprop="blogPost">
+  <div class="article-meta">
+    <a href="/2018/05/18/Python问题汇总-updating/" class="article-date">
+  <time datetime="2018-05-18T11:26:14.000Z" itemprop="datePublished">2018-05-18</time>
+</a>
+    
+  </div>
+  <div class="article-inner">
+    
+    
+      <header class="article-header">
+        
+  
+    <h1 itemprop="name">
+      <a class="article-title" href="/2018/05/18/Python问题汇总-updating/">Python问题汇总(updating)</a>
+    </h1>
+  
+
+      </header>
+    
+    <div class="article-entry" itemprop="articleBody">
+      
+        <ol>
+<li><strong>MemoryError</strong>: 操作较大数据集时出现的问题，原因是使用了32位的系统，或者是在64位系统上使用32位的解释器，导致出现的问题。可调用的内存空间不够大，导致内存溢出。</li>
+</ol>
+
+      
+    </div>
+    <footer class="article-footer">
+      <a data-url="http://yoursite.com/2018/05/18/Python问题汇总-updating/" data-id="cjhbvpabn0000n5ke04y63ile" class="article-share-link">Share</a>
+      
+      
+  <ul class="article-tag-list"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/Python/">Python</a></li></ul>
+
+    </footer>
+  </div>
+  
+</article>
+
+
+  
+    <article id="post-想法1" class="article article-type-post" itemscope itemprop="blogPost">
+  <div class="article-meta">
+    <a href="/2018/05/17/想法1/" class="article-date">
+  <time datetime="2018-05-16T22:22:33.000Z" itemprop="datePublished">2018-05-17</time>
+</a>
+    
+  </div>
+  <div class="article-inner">
+    
+    
+      <header class="article-header">
+        
+  
+    <h1 itemprop="name">
+      <a class="article-title" href="/2018/05/17/想法1/">想法1</a>
+    </h1>
+  
+
+      </header>
+    
+    <div class="article-entry" itemprop="articleBody">
+      
+        <h2 id="关于FaceNet和Adaboost的一些想法"><a href="#关于FaceNet和Adaboost的一些想法" class="headerlink" title="关于FaceNet和Adaboost的一些想法"></a>关于FaceNet和Adaboost的一些想法</h2><p>之前读了F<strong>aceNet</strong>关于人脸识别的这篇文章，以及学过的<strong>Adaboost</strong>算法，感觉这两者在思路上有相同之处。<br>Adaboost是通过改变<strong>样本的权值</strong>，加大<strong>难训练样本</strong>在的权重，来着重训练易分类错误的样本，从而达到较好的效果。<br>无独有偶，FaceNet的triple tuple的生成也是利用这样的思想，尽量寻找难分类的image组成的三元组，对模型进行训练，这样得到的参数会有更好的泛化能力。<br>idea都是相通的。</p>
+
+      
+    </div>
+    <footer class="article-footer">
+      <a data-url="http://yoursite.com/2018/05/17/想法1/" data-id="cjhbvpacy000dn5kejnbf39kz" class="article-share-link">Share</a>
+      
+      
+  <ul class="article-tag-list"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/想法/">想法</a></li></ul>
+
+    </footer>
+  </div>
+  
+</article>
+
+
+  
+    <article id="post-funkSVD" class="article article-type-post" itemscope itemprop="blogPost">
+  <div class="article-meta">
+    <a href="/2018/05/16/funkSVD/" class="article-date">
+  <time datetime="2018-05-16T15:46:38.000Z" itemprop="datePublished">2018-05-16</time>
+</a>
+    
+  </div>
+  <div class="article-inner">
+    
+    
+      <header class="article-header">
+        
+  
+    <h1 itemprop="name">
+      <a class="article-title" href="/2018/05/16/funkSVD/">FunkSVD</a>
+    </h1>
+  
+
+      </header>
+    
+    <div class="article-entry" itemprop="articleBody">
+      
+        <h1 id="京客隆数据分析"><a href="#京客隆数据分析" class="headerlink" title="京客隆数据分析"></a>京客隆数据分析</h1><h2 id="协同过滤算法"><a href="#协同过滤算法" class="headerlink" title="协同过滤算法"></a>协同过滤算法</h2><h2 id="矩阵分解"><a href="#矩阵分解" class="headerlink" title="矩阵分解"></a>矩阵分解</h2><ol>
+<li>奇异值分解（Singular Value Decomposition）是线性代数中一种重要的矩阵分解，是矩阵分析中正规矩酉对角化的推广。在信号处理、统计学等领域有重要应用。奇异值分解则是谱分析理论在任意矩阵上的推广。</li>
+<li>应用<br> a. 矩阵近似值：<br> 奇异值分解在统计中的主要应用为主成分分析（PCA），一种数据分析方法，用来找出大量数据中所隐含的“模式”，它可以用在模式识别，数据压缩等方面。PCA算法的作用是把数据集映射到低维空间中去。 数据集的特征值（在SVD中用奇异值表征）按照重要性排列，降维的过程就是舍弃不重要的特征向量的过程，而剩下的特征向量组成的空间即为降维后的空间。<br> b. 求伪逆<br> 求伪逆通常可以用来求解线性最小平方、最小二乘法问题。</li>
+</ol>
+<h2 id="项目过程"><a href="#项目过程" class="headerlink" title="项目过程"></a>项目过程</h2><ol>
+<li>源数据是用户订单与商品信息，将这两者结合，综合信息，得到用户订单信息表</li>
+<li>选择评分指标，然后指标归一化，分别乘weight，最后得到用户对每个商品的评分</li>
+<li><p>形成用户对商品的评分矩阵</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line">feature_df = pd.DataFrame(index=user_id_list, columns=sku_id_list)</span><br><span class="line"><span class="keyword">for</span> index <span class="keyword">in</span> ratings.index:</span><br><span class="line">   user_id = ratings.loc[index, <span class="string">'userId'</span>]</span><br><span class="line">   sku_id = ratings.loc[index, <span class="string">'skuId'</span>]</span><br><span class="line">   rating = ratings.loc[index, <span class="string">'rating'</span>]</span><br><span class="line">   feature_df.loc[user_id, sku_id] = rating</span><br><span class="line">   <span class="keyword">if</span>(index % <span class="number">100</span> == <span class="number">0</span>):</span><br><span class="line">       print(index)</span><br></pre></td></tr></table></figure>
+<p>这里有个问题，对于大数据集，第一行命令会卡死机器，我的是CPU占用太高，导致卡死。Linux可以通过<strong>Top</strong>命令查看资源消耗情况。<br>优化后的代码如下</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br></pre></td><td class="code"><pre><span class="line">feature_df = pd.DataFrame(columns=sku_id_list)</span><br><span class="line">a = <span class="number">1</span></span><br><span class="line"><span class="keyword">for</span> index <span class="keyword">in</span> ratings.index:</span><br><span class="line">    user_id = ratings.loc[index, <span class="string">'userId'</span>]</span><br><span class="line">    sku_id = ratings.loc[index, <span class="string">'skuId'</span>]</span><br><span class="line">    rating = ratings.loc[index, <span class="string">'rating'</span>]</span><br><span class="line">    feature_df.loc[user_id, sku_id] = rating</span><br><span class="line"><span class="comment">#     if index in feature_df.index:</span></span><br><span class="line"><span class="comment">#         feature_df.loc[user_id, sku_id] = rating</span></span><br><span class="line"><span class="comment">#     else:</span></span><br><span class="line"><span class="comment">#         feature_df.loc[user_id, sku_id] = rating</span></span><br><span class="line">    <span class="keyword">if</span>(feature_df.shape[<span class="number">0</span>] != a):</span><br><span class="line">        print(str(feature_df.shape[<span class="number">0</span>] / <span class="number">59216</span> * <span class="number">100</span>) + <span class="string">'%'</span>)</span><br><span class="line"><span class="comment">#         print(feature_df.shape[0])</span></span><br><span class="line">        a = feature_df.shape[<span class="number">0</span>]</span><br></pre></td></tr></table></figure>
+<p>这里犯了个蠢，使用<strong>.loc好像是自动指定的索引（待研究）</strong><br>另，<strong>对大矩阵的遍历是非常耗时间的，有没有可以加速遍历的方法。</strong></p>
+</li>
+<li><p>矩阵分解</p>
+</li>
+</ol>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">import</span> numpy <span class="keyword">as</span> np</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">def</span> <span class="title">svd</span><span class="params">(M,P,Q,K,steps = <span class="number">1000</span>,alpha = <span class="number">0.1</span>,beta = <span class="number">0.02</span>)</span>:</span></span><br><span class="line">    loss_pre = <span class="number">100</span></span><br><span class="line">    <span class="keyword">for</span> step <span class="keyword">in</span> range(steps):</span><br><span class="line">        <span class="keyword">for</span> i <span class="keyword">in</span> range(M.shape[<span class="number">0</span>]):</span><br><span class="line">            <span class="keyword">for</span> j <span class="keyword">in</span> range(M.shape[<span class="number">1</span>]):</span><br><span class="line">                <span class="comment">#有评分</span></span><br><span class="line"><span class="comment">#                 if(j % 100 == 0):</span></span><br><span class="line"><span class="comment">#                     print("(" + str(i)+ "," + str(j) + ")")</span></span><br><span class="line">                <span class="keyword">if</span>(M[i][j] &gt; <span class="number">0</span>):</span><br><span class="line">                    P[i] = P[i] + alpha * ((M[i][j] - np.dot(P[i],Q[j].T))*Q[j] - beta * P[i])</span><br><span class="line">                    Q[j] = Q[j] + alpha * ((M[i][j] - np.dot(P[i],Q[j].T))*P[i] - beta * Q[j])</span><br><span class="line">        loss = <span class="number">0</span></span><br><span class="line">        num = <span class="number">0</span></span><br><span class="line">        <span class="keyword">for</span> i <span class="keyword">in</span> range(M.shape[<span class="number">0</span>]):</span><br><span class="line">            <span class="keyword">for</span> j <span class="keyword">in</span> range(M.shape[<span class="number">1</span>]):</span><br><span class="line">                <span class="comment">#对有评分的项目，计算损失</span></span><br><span class="line">                <span class="keyword">if</span>(M[i][j] &gt; <span class="number">0</span>):</span><br><span class="line">                    num += <span class="number">1</span></span><br><span class="line">                    loss += np.power(M[i][j] - np.dot(P[i],Q[j].T),<span class="number">2</span>)</span><br><span class="line">        loss = loss / num</span><br><span class="line">        print(<span class="string">'------------------------------------'</span>)</span><br><span class="line">        print(<span class="string">'step:'</span> + str(step))</span><br><span class="line">        print(<span class="string">'loss:'</span> + str(loss))</span><br><span class="line">        print(<span class="string">'------------------------------------'</span>)</span><br><span class="line"><span class="comment">#         break</span></span><br><span class="line">        <span class="keyword">if</span>(loss_pre - loss &gt; <span class="number">0</span>):</span><br><span class="line">            loss_pre = loss</span><br><span class="line">        <span class="keyword">else</span>:</span><br><span class="line">            <span class="keyword">break</span></span><br><span class="line">        <span class="keyword">if</span>(loss &lt; <span class="number">0.01</span>):</span><br><span class="line">            print(<span class="string">"converge"</span>)</span><br><span class="line">            <span class="keyword">break</span></span><br><span class="line">    <span class="keyword">return</span> P,Q</span><br></pre></td></tr></table></figure>
+<p> FunkSVD小解：先生成两个随机分解矩阵，然后讲这两个分解矩阵进行相乘，和原矩阵计算loss，这里用的是L2距离。然后进行矩阵更新，得到新的矩阵，矩阵<strong>更新的公式改天补上</strong>。整个算法中只有两个超参数，alpha，beta。<br> 这里做了一些小改进，有时候在梯度下降达不到指定标准，但是有没有到迭代的指定次数的时候，经过多次迭代，会出现loss增加的情况，我们加了一个终止条件，在loss增加时，停止迭代。</p>
+<p> 原文中，有个针对FunkSVD的测试</p>
+ <figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">import</span> numpy <span class="keyword">as</span> np</span><br><span class="line">M = [</span><br><span class="line">     [<span class="number">5</span>,<span class="number">3</span>,<span class="number">0</span>,<span class="number">1</span>],</span><br><span class="line">     [<span class="number">4</span>,<span class="number">0</span>,<span class="number">3</span>,<span class="number">1</span>],</span><br><span class="line">     [<span class="number">1</span>,<span class="number">1</span>,<span class="number">0</span>,<span class="number">5</span>],</span><br><span class="line">     [<span class="number">1</span>,<span class="number">0</span>,<span class="number">0</span>,<span class="number">4</span>],</span><br><span class="line">     [<span class="number">0</span>,<span class="number">1</span>,<span class="number">5</span>,<span class="number">4</span>],</span><br><span class="line">    ]</span><br><span class="line"></span><br><span class="line">M = np.array(M)</span><br><span class="line"></span><br><span class="line"><span class="string">"""m =5 n = 4 k = 2"""</span></span><br><span class="line">P = np.random.rand(<span class="number">5</span>,<span class="number">2</span>)</span><br><span class="line">Q = np.random.rand(<span class="number">4</span>,<span class="number">2</span>)</span><br><span class="line"></span><br><span class="line">pre_P,pre_Q = svd(M,P,Q,<span class="number">2</span>)</span><br><span class="line"></span><br><span class="line">np.dot(pre_P,pre_Q.T)</span><br></pre></td></tr></table></figure>
+ <figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">array([[<span class="number">4.98506476</span>, <span class="number">2.90980407</span>, <span class="number">3.76531449</span>, <span class="number">1.02101576</span>],</span><br><span class="line">      [<span class="number">3.8656883</span> , <span class="number">2.26213406</span>, <span class="number">3.07091838</span>, <span class="number">0.94917504</span>],</span><br><span class="line">      [<span class="number">1.10000629</span>, <span class="number">0.81308982</span>, <span class="number">5.35203553</span>, <span class="number">4.93601484</span>],</span><br><span class="line">      [<span class="number">0.99239494</span>, <span class="number">0.71485217</span>, <span class="number">4.33420736</span>, <span class="number">3.93816514</span>],</span><br><span class="line">      [<span class="number">1.80929531</span>, <span class="number">1.18877909</span>, <span class="number">4.87452097</span>, <span class="number">4.02555602</span>]])</span><br></pre></td></tr></table></figure>
+<ol start="5">
+<li><p>结果<br>经过FunkSVD函数的分解，我们得到两个矩阵，对这两个矩阵的相乘，得到对整个推荐矩阵。这个矩阵就系统过滤的结果，我们把一个稀疏矩阵进行分解，然后将结果相乘，得到一个“填满”的矩阵，然后根据这个填充好的矩阵里，用户对商品的rating，给用户的推荐相应的商品。</p>
+</li>
+<li><p>Todo</p>
+</li>
+</ol>
+<ul>
+<li style="list-style: none"><input type="checkbox"> SVD原理</li>
+<li style="list-style: none"><input type="checkbox"> FunkSVD中超参数设置alpha，beta</li>
+<li style="list-style: none"><input type="checkbox"> 初始随机过程，会不会对最后的结果造成影响，会不会形成不同的结果。</li>
+<li style="list-style: none"><input type="checkbox"> python对dataframe遍历的优化</li>
+<li style="list-style: none"><input type="checkbox"> 最开始得到用户对商品评分的过程中，几个指标的weight是不是应该有所偏好。</li>
+</ul>
+<h2 id="Reference"><a href="#Reference" class="headerlink" title="Reference"></a>Reference</h2><ol>
+<li><a href="https://blog.csdn.net/js54100804/article/details/79669006" target="_blank" rel="noopener">https://blog.csdn.net/js54100804/article/details/79669006</a></li>
+</ol>
+
+      
+    </div>
+    <footer class="article-footer">
+      <a data-url="http://yoursite.com/2018/05/16/funkSVD/" data-id="cjhbvpac00004n5kebbw6ridw" class="article-share-link">Share</a>
+      
+      
+  <ul class="article-tag-list"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/ML/">ML</a></li><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/Recommend/">Recommend</a></li></ul>
+
+    </footer>
+  </div>
+  
+</article>
+
+
+  
+    <article id="post-HousePricePrediction" class="article article-type-post" itemscope itemprop="blogPost">
+  <div class="article-meta">
+    <a href="/2018/05/16/HousePricePrediction/" class="article-date">
+  <time datetime="2018-05-16T12:59:21.000Z" itemprop="datePublished">2018-05-16</time>
+</a>
+    
+  </div>
+  <div class="article-inner">
+    
+    
+      <header class="article-header">
+        
+  
+    <h1 itemprop="name">
+      <a class="article-title" href="/2018/05/16/HousePricePrediction/">HousePricePrediction</a>
+    </h1>
+  
+
+      </header>
+    
+    <div class="article-entry" itemprop="articleBody">
+      
+        <h2 id="Refercance"><a href="#Refercance" class="headerlink" title="Refercance"></a>Refercance</h2><p>今天学习的kaggle kernal，做一些总结归纳<br><a href="https://www.kaggle.com/apapiu/regularized-linear-models/code" target="_blank" rel="noopener">https://www.kaggle.com/apapiu/regularized-linear-models/code</a></p>
+<h2 id="Need-to-be-learned"><a href="#Need-to-be-learned" class="headerlink" title="Need to be learned"></a>Need to be learned</h2><ol>
+<li>sklearn中的线性模型:Ridge, RidgeCV, ElasticNet, LassoCV, LassoLarsCV</li>
+<li></li>
+</ol>
+<h2 id="Key-Point"><a href="#Key-Point" class="headerlink" title="Key Point"></a>Key Point</h2><ol>
+<li>正态分布（高斯分布）</li>
+<li>对数正态分布: 对数正态分布（logarithmic normal distribution）是指一个随机变量的对数服从正态分布，则该随机变量服从对数正态分布。对数正态分布从短期来看，与正态分布非常接近。但长期来看，对数正态分布向上分布的数值更多一些。</li>
+<li></li>
+</ol>
+
+      
+    </div>
+    <footer class="article-footer">
+      <a data-url="http://yoursite.com/2018/05/16/HousePricePrediction/" data-id="cjhbvpabt0001n5keyuykcuvf" class="article-share-link">Share</a>
+      
+      
+  <ul class="article-tag-list"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/kaggle/">kaggle</a></li></ul>
+
+    </footer>
+  </div>
+  
+</article>
+
+
+  
+    <article id="post-Titanic" class="article article-type-post" itemscope itemprop="blogPost">
+  <div class="article-meta">
+    <a href="/2018/05/15/Titanic/" class="article-date">
+  <time datetime="2018-05-15T13:16:04.000Z" itemprop="datePublished">2018-05-15</time>
+</a>
+    
+  </div>
+  <div class="article-inner">
+    
+    
+      <header class="article-header">
+        
+  
+    <h1 itemprop="name">
+      <a class="article-title" href="/2018/05/15/Titanic/">Titanic</a>
+    </h1>
+  
+
+      </header>
+    
+    <div class="article-entry" itemprop="articleBody">
+      
+        <h2 id="Reference"><a href="#Reference" class="headerlink" title="Reference"></a>Reference</h2>
+      
+    </div>
+    <footer class="article-footer">
+      <a data-url="http://yoursite.com/2018/05/15/Titanic/" data-id="cjhbvpabw0002n5ke5zpgpp6c" class="article-share-link">Share</a>
+      
+      
+  <ul class="article-tag-list"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/kaggle/">kaggle</a></li></ul>
+
+    </footer>
+  </div>
+  
+</article>
+
+
+  
+    <article id="post-hello-world" class="article article-type-post" itemscope itemprop="blogPost">
+  <div class="article-meta">
+    <a href="/2018/05/14/hello-world/" class="article-date">
+  <time datetime="2018-05-14T06:46:38.000Z" itemprop="datePublished">2018-05-14</time>
+</a>
+    
+  </div>
+  <div class="article-inner">
+    
+    
+      <header class="article-header">
+        
+  
+    <h1 itemprop="name">
+      <a class="article-title" href="/2018/05/14/hello-world/">Hello World</a>
+    </h1>
+  
+
+      </header>
+    
+    <div class="article-entry" itemprop="articleBody">
+      
+        <p>Welcome to <a href="https://hexo.io/" target="_blank" rel="noopener">Hexo</a>! This is your very first post. Check <a href="https://hexo.io/docs/" target="_blank" rel="noopener">documentation</a> for more info. If you get any problems when using Hexo, you can find the answer in <a href="https://hexo.io/docs/troubleshooting.html" target="_blank" rel="noopener">troubleshooting</a> or you can ask me on <a href="https://github.com/hexojs/hexo/issues" target="_blank" rel="noopener">GitHub</a>.</p>
+<h2 id="Note"><a href="#Note" class="headerlink" title="Note"></a>Note</h2><p><strong>There is something added</strong></p>
+<ol>
+<li><p>add a new articl</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">$ hexo new post [title]</span><br></pre></td></tr></table></figure>
+</li>
+<li><p>mulitly tag</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">title:[a,b,c]</span><br></pre></td></tr></table></figure>
+</li>
+</ol>
+<h2 id="Quick-Start"><a href="#Quick-Start" class="headerlink" title="Quick Start"></a>Quick Start</h2><h3 id="Create-a-new-post"><a href="#Create-a-new-post" class="headerlink" title="Create a new post"></a>Create a new post</h3><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">$ hexo new <span class="string">"My New Post"</span></span><br></pre></td></tr></table></figure>
+<p>More info: <a href="https://hexo.io/docs/writing.html" target="_blank" rel="noopener">Writing</a></p>
+<h3 id="Run-server"><a href="#Run-server" class="headerlink" title="Run server"></a>Run server</h3><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">$ hexo server</span><br></pre></td></tr></table></figure>
+<p>More info: <a href="https://hexo.io/docs/server.html" target="_blank" rel="noopener">Server</a></p>
+<h3 id="Generate-static-files"><a href="#Generate-static-files" class="headerlink" title="Generate static files"></a>Generate static files</h3><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">$ hexo generate</span><br></pre></td></tr></table></figure>
+<p>More info: <a href="https://hexo.io/docs/generating.html" target="_blank" rel="noopener">Generating</a></p>
+<h3 id="Deploy-to-remote-sites"><a href="#Deploy-to-remote-sites" class="headerlink" title="Deploy to remote sites"></a>Deploy to remote sites</h3><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">$ hexo deploy</span><br></pre></td></tr></table></figure>
+<p>More info: <a href="https://hexo.io/docs/deployment.html" target="_blank" rel="noopener">Deployment</a></p>
+
+      
+    </div>
+    <footer class="article-footer">
+      <a data-url="http://yoursite.com/2018/05/14/hello-world/" data-id="cjhbvpac10005n5keyf2z719r" class="article-share-link">Share</a>
+      
+      
+    </footer>
+  </div>
+  
+</article>
+
+
+  
+
+
+</section>
+        
+          <aside id="sidebar">
+  
+    
+
+  
+    
+  <div class="widget-wrap">
+    <h3 class="widget-title">Tags</h3>
+    <div class="widget">
+      <ul class="tag-list"><li class="tag-list-item"><a class="tag-list-link" href="/tags/Computer-Vision/">Computer Vision</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/ML/">ML</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/OpenCV/">OpenCV</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Python/">Python</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Recommend/">Recommend</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/kaggle/">kaggle</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/想法/">想法</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/源码阅读/">源码阅读</a></li></ul>
+    </div>
+  </div>
+
+
+  
+    
+  <div class="widget-wrap">
+    <h3 class="widget-title">Tag Cloud</h3>
+    <div class="widget tagcloud">
+      <a href="/tags/Computer-Vision/" style="font-size: 10px;">Computer Vision</a> <a href="/tags/ML/" style="font-size: 10px;">ML</a> <a href="/tags/OpenCV/" style="font-size: 10px;">OpenCV</a> <a href="/tags/Python/" style="font-size: 10px;">Python</a> <a href="/tags/Recommend/" style="font-size: 10px;">Recommend</a> <a href="/tags/kaggle/" style="font-size: 20px;">kaggle</a> <a href="/tags/想法/" style="font-size: 10px;">想法</a> <a href="/tags/源码阅读/" style="font-size: 10px;">源码阅读</a>
+    </div>
+  </div>
+
+  
+    
+  <div class="widget-wrap">
+    <h3 class="widget-title">Archives</h3>
+    <div class="widget">
+      <ul class="archive-list"><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/05/">May 2018</a></li></ul>
+    </div>
+  </div>
+
+
+  
+    
+  <div class="widget-wrap">
+    <h3 class="widget-title">Recent Posts</h3>
+    <div class="widget">
+      <ul>
+        
+          <li>
+            <a href="/2018/05/19/车道线检测源码阅读/">车道线检测源码阅读</a>
+          </li>
+        
+          <li>
+            <a href="/2018/05/18/车道线检测资料/">车道线检测资料</a>
+          </li>
+        
+          <li>
+            <a href="/2018/05/18/Python问题汇总-updating/">Python问题汇总(updating)</a>
+          </li>
+        
+          <li>
+            <a href="/2018/05/17/想法1/">想法1</a>
+          </li>
+        
+          <li>
+            <a href="/2018/05/16/funkSVD/">FunkSVD</a>
+          </li>
+        
+      </ul>
+    </div>
+  </div>
+
+  
+</aside>
+        
+      </div>
+      <footer id="footer">
+  
+  <div class="outer">
+    <div id="footer-info" class="inner">
+      &copy; 2018 John Doe<br>
+      Powered by <a href="http://hexo.io/" target="_blank">Hexo</a>
+    </div>
+  </div>
+</footer>
+    </div>
+    <nav id="mobile-nav">
+  
+    <a href="/" class="mobile-nav-link">Home</a>
+  
+    <a href="/archives" class="mobile-nav-link">Archives</a>
+  
+</nav>
+    
+
+<script src="//ajax.googleapis.com/ajax/libs/jquery/2.0.3/jquery.min.js"></script>
+
+
+  <link rel="stylesheet" href="/fancybox/jquery.fancybox.css">
+  <script src="/fancybox/jquery.fancybox.pack.js"></script>
+
+
+<script src="/js/script.js"></script>
+
+
+
+  </div>
+</body>
+</html>
