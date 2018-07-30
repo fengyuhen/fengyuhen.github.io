@@ -249,6 +249,161 @@
   
   
   <div class="post-block">
+    <link itemprop="mainEntityOfPage" href="http://yoursite.com/2018/07/30/Object-Detection-Summrize/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="name" content="Fengyuhen">
+      <meta itemprop="description" content="">
+      <meta itemprop="image" content="/images/avatar.gif">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="我有一片海">
+    </span>
+
+    
+      <header class="post-header">
+
+        
+        
+          <h1 class="post-title" itemprop="name headline">
+                
+                <a class="post-title-link" href="/2018/07/30/Object-Detection-Summrize/" itemprop="url">Object Detection Summrize</a></h1>
+        
+
+        <div class="post-meta">
+          <span class="post-time">
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">Posted on</span>
+              
+              <time title="Post created" itemprop="dateCreated datePublished" datetime="2018-07-30T20:23:40+08:00">
+                2018-07-30
+              </time>
+            
+
+            
+
+            
+          </span>
+
+          
+
+          
+            
+          
+
+          
+          
+
+          
+
+          
+
+          
+
+        </div>
+      </header>
+    
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+      
+
+      
+        
+          
+            <h1 id="目标检测汇总"><a href="#目标检测汇总" class="headerlink" title="目标检测汇总"></a>目标检测汇总</h1><h2 id="引入"><a href="#引入" class="headerlink" title="引入"></a>引入</h2><p>之前读了目标检测的一些论文，R-CNN，Fast R-CNN，Faster R-CNN，看的时候一知半解，很多地方也马马虎虎，今天对之前的知识做一下梳理</p>
+<h2 id="Computer-Vision"><a href="#Computer-Vision" class="headerlink" title="Computer Vision"></a>Computer Vision</h2><p>目前来说，所接触的到CV方向主要有图像分类，目标检测，语义分割，其中目标检测技术的一般流程主要有以下几个方面</p>
+<ol>
+<li>region proposal：候选区域的生成</li>
+<li>classification：对候选区域提取特征，做物体的分类</li>
+<li>bounding box：生成边界框</li>
+<li>bounding box regression：边界框回归</li>
+</ol>
+<h2 id="Region-proposal"><a href="#Region-proposal" class="headerlink" title="Region proposal"></a>Region proposal</h2><p>Region proposal的生成方式，了解到的有</p>
+<ol>
+<li>SS（selective search）：R-CNN，Fast R-CNN中使用</li>
+<li>RPN（region proposal network）：Faster R-CNN中使用</li>
+</ol>
+<h3 id="RPN"><a href="#RPN" class="headerlink" title="RPN"></a>RPN</h3><p>Fast R-CNN利用了GPU，而region proposal方法是在CPU上实现的，这个运行时间的比较是不公平的。一种明显提速生成建议框的方法是在GPU上实现它，这是一种工程上很有效的解决方案，但这个方法忽略了其后的检测网络，因而也错失了共享计算的重要机会。<br>Faster R-CNN中使用深度网络计算建议框，建议框计算几乎不会给检测网络的计算带来消耗。<br>RPN网络主要分为ZF部分，和RPN部分</p>
+<h4 id="ZF-Net-part"><a href="#ZF-Net-part" class="headerlink" title="ZF Net part"></a>ZF Net part</h4><img src="http://7xrr4a.com1.z0.glb.clouddn.com/ZFNet.jpeg">
+<ol>
+<li>首先，输入图片大小是 224×224×3</li>
+<li>然后第一层的卷积核维度是 7×7×3(×96)，stride=2，padding=3</li>
+<li>所以conv1得到的结果是110×110×96 (110=(224-7+pad)/stride+1)</li>
+<li>3×3 max pool stride=2，得到pool1，池化后的维度是55×55×96  55=(110-3+pad)/stride+1；</li>
+<li>然后接着就是再一次卷积，conv kernal size 5×5×96(×256), stride = 2，得到conv2：26×26×256；</li>
+<li>最后获取conv5的输出，也就是13×13×256送给RPN网络的；</li>
+</ol>
+<h4 id="RPN-part"><a href="#RPN-part" class="headerlink" title="RPN part"></a>RPN part</h4><img src="http://7xrr4a.com1.z0.glb.clouddn.com/RPN-part.jpeg">
+<ol>
+<li>conv feature map的维度是13×13×256的；</li>
+<li>Faster R-CNN文章中指出，sliding window的大小是3×3的，如何得到这个256-d的向量呢? 只需要一个3×3×256(×256)这样的一个4维的卷积核，就可以将每一个3×3的sliding window 卷积成一个256维的向量；图里只是针对一个sliding window的；在实际实现中，我们有很多个sliding window，所以得到的并不是一维的256-d向量，实际上还是一个3维的矩阵数据结构。</li>
+<li>然后就是k=9，所以cls layer就是18个输出节点了，那么在256-d和cls layer之间使用一个1×1×256×18的卷积核，就可以得到cls layer，当然这个1×1×256×18的卷积核就是大家平常理解的全连接；所以全连接只是卷积操作的一种特殊情况（当卷积核的大小与图片大小相同的时候，其实所谓的卷积就是全连接了）</li>
+<li>reg layer也是一样了，reg layer的输出是36个，所以对应的卷积核是1×1×256×36，这样就可以得到reg layer的输出了；</li>
+<li>然后cls layer 和reg layer后面都会接到自己的损失函数上，给出损失函数的值，同时会根据求导的结果，给出反向传播的数据</li>
+</ol>
+<h2 id="Reference"><a href="#Reference" class="headerlink" title="Reference"></a>Reference</h2><ol>
+<li><a href="https://blog.csdn.net/ture_dream/article/details/52896452" target="_blank" rel="noopener">https://blog.csdn.net/ture_dream/article/details/52896452</a></li>
+<li><a href="https://blog.csdn.net/u013832707/article/details/53641055" target="_blank" rel="noopener">https://blog.csdn.net/u013832707/article/details/53641055</a></li>
+<li><a href="https://blog.csdn.net/sloanqin/article/details/51545125" target="_blank" rel="noopener">https://blog.csdn.net/sloanqin/article/details/51545125</a></li>
+</ol>
+
+          
+        
+      
+    </div>
+    
+    
+    
+
+    
+
+    
+
+    
+
+    <footer class="post-footer">
+      
+
+      
+
+      
+
+      
+      
+        <div class="post-eof"></div>
+      
+    </footer>
+  </div>
+  
+  
+  
+  </article>
+
+
+    
+      
+
+  
+
+  
+  
+  
+
+  <article class="post post-type-normal" itemscope itemtype="http://schema.org/Article">
+  
+  
+  
+  <div class="post-block">
     <link itemprop="mainEntityOfPage" href="http://yoursite.com/2018/07/15/MCDC-车道线检测/">
 
     <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
@@ -1552,125 +1707,6 @@
 
 
     
-      
-
-  
-
-  
-  
-  
-
-  <article class="post post-type-normal" itemscope itemtype="http://schema.org/Article">
-  
-  
-  
-  <div class="post-block">
-    <link itemprop="mainEntityOfPage" href="http://yoursite.com/2018/05/15/Titanic/">
-
-    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
-      <meta itemprop="name" content="Fengyuhen">
-      <meta itemprop="description" content="">
-      <meta itemprop="image" content="/images/avatar.gif">
-    </span>
-
-    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
-      <meta itemprop="name" content="我有一片海">
-    </span>
-
-    
-      <header class="post-header">
-
-        
-        
-          <h1 class="post-title" itemprop="name headline">
-                
-                <a class="post-title-link" href="/2018/05/15/Titanic/" itemprop="url">Titanic</a></h1>
-        
-
-        <div class="post-meta">
-          <span class="post-time">
-            
-              <span class="post-meta-item-icon">
-                <i class="fa fa-calendar-o"></i>
-              </span>
-              
-                <span class="post-meta-item-text">Posted on</span>
-              
-              <time title="Post created" itemprop="dateCreated datePublished" datetime="2018-05-15T21:16:04+08:00">
-                2018-05-15
-              </time>
-            
-
-            
-
-            
-          </span>
-
-          
-
-          
-            
-          
-
-          
-          
-
-          
-
-          
-
-          
-
-        </div>
-      </header>
-    
-
-    
-    
-    
-    <div class="post-body" itemprop="articleBody">
-
-      
-      
-
-      
-        
-          
-            <h2 id="Reference"><a href="#Reference" class="headerlink" title="Reference"></a>Reference</h2>
-          
-        
-      
-    </div>
-    
-    
-    
-
-    
-
-    
-
-    
-
-    <footer class="post-footer">
-      
-
-      
-
-      
-
-      
-      
-        <div class="post-eof"></div>
-      
-    </footer>
-  </div>
-  
-  
-  
-  </article>
-
-
-    
   </section>
 
   
@@ -1721,7 +1757,7 @@
               
                 <a href="/archives/">
               
-                  <span class="site-state-item-count">12</span>
+                  <span class="site-state-item-count">13</span>
                   <span class="site-state-item-name">posts</span>
                 </a>
               </div>
