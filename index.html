@@ -249,6 +249,156 @@
   
   
   <div class="post-block">
+    <link itemprop="mainEntityOfPage" href="http://yoursite.com/2018/08/06/Faster-RCNN解析/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="name" content="Fengyuhen">
+      <meta itemprop="description" content="">
+      <meta itemprop="image" content="/images/avatar.gif">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="我有一片海">
+    </span>
+
+    
+      <header class="post-header">
+
+        
+        
+          <h1 class="post-title" itemprop="name headline">
+                
+                <a class="post-title-link" href="/2018/08/06/Faster-RCNN解析/" itemprop="url">Faster RCNN 详解</a></h1>
+        
+
+        <div class="post-meta">
+          <span class="post-time">
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">Posted on</span>
+              
+              <time title="Post created" itemprop="dateCreated datePublished" datetime="2018-08-06T20:52:52+08:00">
+                2018-08-06
+              </time>
+            
+
+            
+
+            
+          </span>
+
+          
+
+          
+            
+          
+
+          
+          
+
+          
+
+          
+
+          
+
+        </div>
+      </header>
+    
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+      
+
+      
+        
+          
+            <h1 id="Faster-RCNN-详解"><a href="#Faster-RCNN-详解" class="headerlink" title="Faster RCNN 详解"></a>Faster RCNN 详解</h1><p>Referrence：<a href="https://github.com/jinfagang/keras_frcnn" target="_blank" rel="noopener">https://github.com/jinfagang/keras_frcnn</a></p>
+<p>今天阅读了Faster RCNN代码的keras版本的复现，对Faster RCNN的理解有所加深。</p>
+<h2 id="train-frcnn-kitti-py"><a href="#train-frcnn-kitti-py" class="headerlink" title="train_frcnn_kitti.py"></a>train_frcnn_kitti.py</h2><p>从main开始，调用train_kitti()函数</p>
+<h3 id="首先，装载配置"><a href="#首先，装载配置" class="headerlink" title="首先，装载配置"></a>首先，装载配置</h3><figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># config for data argument</span></span><br><span class="line">cfg = config.Config()</span><br><span class="line"></span><br><span class="line">cfg.use_horizontal_flips = <span class="keyword">True</span></span><br><span class="line">cfg.use_vertical_flips = <span class="keyword">True</span></span><br><span class="line">cfg.rot_90 = <span class="keyword">True</span></span><br><span class="line">cfg.num_rois = <span class="number">32</span></span><br><span class="line">cfg.base_net_weights = os.path.join(<span class="string">'./model/'</span>, nn.get_weight_path())</span><br><span class="line"></span><br><span class="line"><span class="comment"># <span class="doctag">TODO:</span> the only file should to be change for other data to train</span></span><br><span class="line">cfg.model_path = <span class="string">'./model/kitti_frcnn_last.hdf5'</span></span><br><span class="line">cfg.simple_label_file = <span class="string">'kitti_simple_label.txt'</span></span><br></pre></td></tr></table></figure>
+<h3 id="装载数据"><a href="#装载数据" class="headerlink" title="装载数据"></a>装载数据</h3><figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">all_images, classes_count, class_mapping = get_data(cfg.simple_label_file)</span><br></pre></td></tr></table></figure>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">def</span> <span class="title">get_data</span><span class="params">(input_path)</span>:</span></span><br><span class="line">    found_bg = <span class="keyword">False</span></span><br><span class="line">    all_imgs = &#123;&#125;</span><br><span class="line">    classes_count = &#123;&#125;</span><br><span class="line">    class_mapping = &#123;&#125;</span><br><span class="line">    visualise = <span class="keyword">True</span></span><br><span class="line">    <span class="keyword">with</span> open(input_path, <span class="string">'r'</span>) <span class="keyword">as</span> f:</span><br><span class="line">        print(<span class="string">'Parsing annotation files'</span>)</span><br><span class="line">        <span class="keyword">for</span> line <span class="keyword">in</span> f:</span><br><span class="line">            line_split = line.strip().split(<span class="string">','</span>)</span><br><span class="line">            (filename, x1, y1, x2, y2, class_name) = line_split</span><br><span class="line">            <span class="keyword">if</span> class_name <span class="keyword">not</span> <span class="keyword">in</span> classes_count:</span><br><span class="line">                classes_count[class_name] = <span class="number">1</span></span><br><span class="line">            <span class="keyword">else</span>:</span><br><span class="line">                classes_count[class_name] += <span class="number">1</span></span><br><span class="line">            <span class="keyword">if</span> class_name <span class="keyword">not</span> <span class="keyword">in</span> class_mapping:</span><br><span class="line">                <span class="keyword">if</span> class_name == <span class="string">'bg'</span> <span class="keyword">and</span> <span class="keyword">not</span> found_bg:</span><br><span class="line">                    print(<span class="string">'Found class name with special name bg. Will be treated as a'</span></span><br><span class="line">                          <span class="string">' background region (this is usually for hard negative mining).'</span>)</span><br><span class="line">                    found_bg = <span class="keyword">True</span></span><br><span class="line">                class_mapping[class_name] = len(class_mapping)</span><br><span class="line">            <span class="keyword">if</span> filename <span class="keyword">not</span> <span class="keyword">in</span> all_imgs:</span><br><span class="line">                all_imgs[filename] = &#123;&#125;</span><br><span class="line">                img = cv2.imread(filename)</span><br><span class="line">                (rows, cols) = img.shape[:<span class="number">2</span>]</span><br><span class="line">                all_imgs[filename][<span class="string">'filepath'</span>] = filename</span><br><span class="line">                all_imgs[filename][<span class="string">'width'</span>] = cols</span><br><span class="line">                all_imgs[filename][<span class="string">'height'</span>] = rows</span><br><span class="line">                all_imgs[filename][<span class="string">'bboxes'</span>] = []</span><br><span class="line">                <span class="keyword">if</span> np.random.randint(<span class="number">0</span>, <span class="number">6</span>) &gt; <span class="number">0</span>:</span><br><span class="line">                    all_imgs[filename][<span class="string">'imageset'</span>] = <span class="string">'trainval'</span></span><br><span class="line">                <span class="keyword">else</span>:</span><br><span class="line">                    all_imgs[filename][<span class="string">'imageset'</span>] = <span class="string">'test'</span></span><br><span class="line">            all_imgs[filename][<span class="string">'bboxes'</span>].append(</span><br><span class="line">                &#123;<span class="string">'class'</span>: class_name, <span class="string">'x1'</span>: int(float(x1)), <span class="string">'x2'</span>: int(float(x2)), <span class="string">'y1'</span>: int(float(y1)),</span><br><span class="line">                 <span class="string">'y2'</span>: int(float(y2))&#125;)</span><br><span class="line">        all_data = []</span><br><span class="line">        <span class="keyword">for</span> key <span class="keyword">in</span> all_imgs:</span><br><span class="line">            all_data.append(all_imgs[key])</span><br><span class="line">        <span class="comment"># make sure the bg class is last in the list</span></span><br><span class="line">        <span class="keyword">if</span> found_bg:</span><br><span class="line">            <span class="keyword">if</span> class_mapping[<span class="string">'bg'</span>] != len(class_mapping) - <span class="number">1</span>:</span><br><span class="line">                key_to_switch = [key <span class="keyword">for</span> key <span class="keyword">in</span> class_mapping.keys() <span class="keyword">if</span> class_mapping[key] == len(class_mapping) - <span class="number">1</span>][<span class="number">0</span>]</span><br><span class="line">                val_to_switch = class_mapping[<span class="string">'bg'</span>]</span><br><span class="line">                class_mapping[<span class="string">'bg'</span>] = len(class_mapping) - <span class="number">1</span></span><br><span class="line">                class_mapping[key_to_switch] = val_to_switch</span><br><span class="line">        <span class="keyword">return</span> all_data, classes_count, class_mapping</span><br></pre></td></tr></table></figure>
+<h3 id="划分数据集，并进行数据增强-generator"><a href="#划分数据集，并进行数据增强-generator" class="headerlink" title="划分数据集，并进行数据增强(generator)"></a>划分数据集，并进行数据增强(generator)</h3><figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">if</span> <span class="string">'bg'</span> <span class="keyword">not</span> <span class="keyword">in</span> classes_count:</span><br><span class="line">    classes_count[<span class="string">'bg'</span>] = <span class="number">0</span></span><br><span class="line">    class_mapping[<span class="string">'bg'</span>] = len(class_mapping)</span><br><span class="line"></span><br><span class="line">cfg.class_mapping = class_mapping</span><br><span class="line"><span class="keyword">with</span> open(cfg.config_save_file, <span class="string">'wb'</span>) <span class="keyword">as</span> config_f:</span><br><span class="line">    pickle.dump(cfg, config_f)</span><br><span class="line">    print(<span class="string">'Config has been written to &#123;&#125;, and can be loaded when testing to ensure correct results'</span>.format(</span><br><span class="line">        cfg.config_save_file))</span><br><span class="line"></span><br><span class="line">inv_map = &#123;v: k <span class="keyword">for</span> k, v <span class="keyword">in</span> class_mapping.items()&#125;</span><br><span class="line"></span><br><span class="line">print(<span class="string">'Training images per class:'</span>)</span><br><span class="line">pprint.pprint(classes_count)</span><br><span class="line">print(<span class="string">'Num classes (including bg) = &#123;&#125;'</span>.format(len(classes_count)))</span><br><span class="line">random.shuffle(all_images)</span><br><span class="line">num_imgs = len(all_images)</span><br><span class="line">train_imgs = [s <span class="keyword">for</span> s <span class="keyword">in</span> all_images <span class="keyword">if</span> s[<span class="string">'imageset'</span>] == <span class="string">'trainval'</span>]</span><br><span class="line">val_imgs = [s <span class="keyword">for</span> s <span class="keyword">in</span> all_images <span class="keyword">if</span> s[<span class="string">'imageset'</span>] == <span class="string">'test'</span>]</span><br><span class="line"></span><br><span class="line">print(<span class="string">'Num train samples &#123;&#125;'</span>.format(len(train_imgs)))</span><br><span class="line">print(<span class="string">'Num val samples &#123;&#125;'</span>.format(len(val_imgs)))</span><br><span class="line"></span><br><span class="line">data_gen_train = data_generators.get_anchor_gt(train_imgs, classes_count, cfg, nn.get_img_output_length,</span><br><span class="line">                                               K.image_dim_ordering(), mode=<span class="string">'train'</span>)</span><br><span class="line">data_gen_val = data_generators.get_anchor_gt(val_imgs, classes_count, cfg, nn.get_img_output_length,</span><br><span class="line">                                             K.image_dim_ordering(), mode=<span class="string">'val'</span>)</span><br></pre></td></tr></table></figure>
+<h3 id="模型-关键部分"><a href="#模型-关键部分" class="headerlink" title="模型(关键部分)"></a>模型(关键部分)</h3><h4 id="模型建立"><a href="#模型建立" class="headerlink" title="模型建立"></a>模型建立</h4><figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">if</span> K.image_dim_ordering() == <span class="string">'th'</span>:</span><br><span class="line">    input_shape_img = (<span class="number">3</span>, <span class="keyword">None</span>, <span class="keyword">None</span>)</span><br><span class="line"><span class="keyword">else</span>:</span><br><span class="line">    input_shape_img = (<span class="keyword">None</span>, <span class="keyword">None</span>, <span class="number">3</span>)</span><br><span class="line"></span><br><span class="line">img_input = Input(shape=input_shape_img)</span><br><span class="line">roi_input = Input(shape=(<span class="keyword">None</span>, <span class="number">4</span>))</span><br><span class="line"></span><br><span class="line"><span class="comment"># define the base network (resnet here, can be VGG, Inception, etc)</span></span><br><span class="line">shared_layers = nn.nn_base(img_input, trainable=<span class="keyword">True</span>)</span><br><span class="line"></span><br><span class="line"><span class="comment"># define the RPN, built on the base layers</span></span><br><span class="line">num_anchors = len(cfg.anchor_box_scales) * len(cfg.anchor_box_ratios)</span><br><span class="line">rpn = nn.rpn(shared_layers, num_anchors)</span><br><span class="line"></span><br><span class="line">classifier = nn.classifier(shared_layers, roi_input, cfg.num_rois, nb_classes=len(classes_count), trainable=<span class="keyword">True</span>)</span><br><span class="line"></span><br><span class="line">model_rpn = Model(img_input, rpn[:<span class="number">2</span>])</span><br><span class="line">model_classifier = Model([img_input, roi_input], classifier)</span><br><span class="line"></span><br><span class="line"><span class="comment"># this is a model that holds both the RPN and the classifier, used to load/save weights for the models</span></span><br><span class="line">model_all = Model([img_input, roi_input], rpn[:<span class="number">2</span>] + classifier)</span><br></pre></td></tr></table></figure>
+<ol>
+<li><p>首先，定义模型的输入，分别有两部分：img_input(图像的输入)，roi_input(region数据的输入，[x, y, w, h]四元组)<strong>区域中物体的类别属性在哪</strong></p>
+</li>
+<li><p>模型大概分为这么几个部分：特征提取网络，RPN， Classifier，这里使用的是函数模型，相对来说能更好的把握网络的结构。</p>
+<ol>
+<li><p>特征提取网络nn.nn_base -&gt; from keras_frcnn import resnet as nn，这里使用的是resnet，将resnet的中间某层的feature map作为shared_layer</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">def</span> <span class="title">nn_base</span><span class="params">(input_tensor=None, trainable=False)</span>:</span></span><br><span class="line">    <span class="comment"># Determine proper input shape</span></span><br><span class="line">    <span class="keyword">if</span> K.image_dim_ordering() == <span class="string">'th'</span>:</span><br><span class="line">        input_shape = (<span class="number">3</span>, <span class="keyword">None</span>, <span class="keyword">None</span>)</span><br><span class="line">    <span class="keyword">else</span>:</span><br><span class="line">        input_shape = (<span class="keyword">None</span>, <span class="keyword">None</span>, <span class="number">3</span>)</span><br><span class="line"></span><br><span class="line">    <span class="keyword">if</span> input_tensor <span class="keyword">is</span> <span class="keyword">None</span>:</span><br><span class="line">        img_input = Input(shape=input_shape)</span><br><span class="line">    <span class="keyword">else</span>:</span><br><span class="line">        <span class="keyword">if</span> <span class="keyword">not</span> K.is_keras_tensor(input_tensor):</span><br><span class="line">            img_input = Input(tensor=input_tensor, shape=input_shape)</span><br><span class="line">        <span class="keyword">else</span>:</span><br><span class="line">            img_input = input_tensor</span><br><span class="line"></span><br><span class="line">    <span class="keyword">if</span> K.image_dim_ordering() == <span class="string">'tf'</span>:</span><br><span class="line">        bn_axis = <span class="number">3</span></span><br><span class="line">    <span class="keyword">else</span>:</span><br><span class="line">        bn_axis = <span class="number">1</span></span><br><span class="line"></span><br><span class="line">    x = ZeroPadding2D((<span class="number">3</span>, <span class="number">3</span>))(img_input)</span><br><span class="line">    <span class="comment"># pass</span></span><br><span class="line">    x = identity_block(x, <span class="number">3</span>, [<span class="number">256</span>, <span class="number">256</span>, <span class="number">1024</span>], stage=<span class="number">4</span>, block=<span class="string">'f'</span>, trainable=trainable)</span><br><span class="line"></span><br><span class="line">    <span class="keyword">return</span> x</span><br></pre></td></tr></table></figure>
+</li>
+<li><p>RPN(region proposal network)，shared_layer是之前的feature_map，经过一次卷积之后网络开始分叉，第一个分叉是分类网络（这里的分类网络的作用，因为还有一个classifier），filter=num_anchors(使用的sigmoid激活函数)，第二个分叉是回归网络，因为要预测数4元组的的值，并且4元组是连续值，所以filter=4*num_anchors(使用的是linear激活函数)</p>
+<p>问题：为什么是num_anchors，而不是num_rois，anchor box是在哪里应用的</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># define the RPN, built on the base layers</span></span><br><span class="line">num_anchors = len(cfg.anchor_box_scales) * len(cfg.anchor_box_ratios)</span><br><span class="line">rpn = nn.rpn(shared_layers, num_anchors)</span><br></pre></td></tr></table></figure>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">def</span> <span class="title">rpn</span><span class="params">(base_layers, num_anchors)</span>:</span></span><br><span class="line">    x = Convolution2D(<span class="number">512</span>, (<span class="number">3</span>, <span class="number">3</span>), padding=<span class="string">'same'</span>, activation=<span class="string">'relu'</span>, kernel_initializer=<span class="string">'normal'</span>, name=<span class="string">'rpn_conv1'</span>)(base_layers)</span><br><span class="line">    x_class = Convolution2D(num_anchors, (<span class="number">1</span>, <span class="number">1</span>), activation=<span class="string">'sigmoid'</span>, kernel_initializer=<span class="string">'uniform'</span>, name=<span class="string">'rpn_out_class'</span>)(x)</span><br><span class="line">    x_regr = Convolution2D(num_anchors * <span class="number">4</span>, (<span class="number">1</span>, <span class="number">1</span>), activation=<span class="string">'linear'</span>, kernel_initializer=<span class="string">'zero'</span>, name=<span class="string">'rpn_out_regress'</span>)(x)</span><br><span class="line">    <span class="keyword">return</span> [x_class, x_regr, base_layers]</span><br></pre></td></tr></table></figure>
+</li>
+<li><p>分类网络</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">classifier = nn.classifier(shared_layers, roi_input, cfg.num_rois, nb_classes=len(classes_count), trainable=<span class="keyword">True</span>)</span><br></pre></td></tr></table></figure>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">def</span> <span class="title">classifier</span><span class="params">(base_layers, input_rois, num_rois, nb_classes=<span class="number">21</span>, trainable=False)</span>:</span></span><br><span class="line">    <span class="comment"># compile times on theano tend to be very high, so we use smaller ROI pooling regions to workaround</span></span><br><span class="line"></span><br><span class="line">    <span class="keyword">if</span> K.backend() == <span class="string">'tensorflow'</span>:</span><br><span class="line">        pooling_regions = <span class="number">14</span></span><br><span class="line">        input_shape = (num_rois, <span class="number">14</span>, <span class="number">14</span>, <span class="number">1024</span>)</span><br><span class="line">    <span class="keyword">elif</span> K.backend() == <span class="string">'theano'</span>:</span><br><span class="line">        pooling_regions = <span class="number">7</span></span><br><span class="line">        input_shape = (num_rois, <span class="number">1024</span>, <span class="number">7</span>, <span class="number">7</span>)</span><br><span class="line"></span><br><span class="line">    out_roi_pool = RoiPoolingConv(pooling_regions, num_rois)([base_layers, input_rois])</span><br><span class="line">    out = classifier_layers(out_roi_pool, input_shape=input_shape, trainable=<span class="keyword">True</span>)</span><br><span class="line"></span><br><span class="line">    out = TimeDistributed(Flatten())(out)</span><br><span class="line"></span><br><span class="line">    out_class = TimeDistributed(Dense(nb_classes, activation=<span class="string">'softmax'</span>, kernel_initializer=<span class="string">'zero'</span>),</span><br><span class="line">                                name=<span class="string">'dense_class_&#123;&#125;'</span>.format(nb_classes))(out)</span><br><span class="line">    <span class="comment"># note: no regression target for bg class</span></span><br><span class="line">    out_regr = TimeDistributed(Dense(<span class="number">4</span> * (nb_classes - <span class="number">1</span>), activation=<span class="string">'linear'</span>, kernel_initializer=<span class="string">'zero'</span>),</span><br><span class="line">                               name=<span class="string">'dense_regress_&#123;&#125;'</span>.format(nb_classes))(out)</span><br><span class="line">    <span class="keyword">return</span> [out_class, out_regr]</span><br></pre></td></tr></table></figure>
+</li>
+<li><p>模型组建部分</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">model_rpn = Model(img_input, rpn[:<span class="number">2</span>])</span><br><span class="line">model_classifier = Model([img_input, roi_input], classifier)</span><br><span class="line"></span><br><span class="line"><span class="comment"># this is a model that holds both the RPN and the classifier, used to load/save weights for the models</span></span><br><span class="line">model_all = Model([img_input, roi_input], rpn[:<span class="number">2</span>] + classifier)</span><br></pre></td></tr></table></figure>
+</li>
+</ol>
+</li>
+</ol>
+
+          
+        
+      
+    </div>
+    
+    
+    
+
+    
+
+    
+
+    
+
+    <footer class="post-footer">
+      
+
+      
+
+      
+
+      
+      
+        <div class="post-eof"></div>
+      
+    </footer>
+  </div>
+  
+  
+  
+  </article>
+
+
+    
+      
+
+  
+
+  
+  
+  
+
+  <article class="post post-type-normal" itemscope itemtype="http://schema.org/Article">
+  
+  
+  
+  <div class="post-block">
     <link itemprop="mainEntityOfPage" href="http://yoursite.com/2018/07/30/Object-Detection-Summrize/">
 
     <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
@@ -321,7 +471,7 @@
         
           
             <h1 id="目标检测汇总"><a href="#目标检测汇总" class="headerlink" title="目标检测汇总"></a>目标检测汇总</h1><h2 id="引入"><a href="#引入" class="headerlink" title="引入"></a>引入</h2><p>之前读了目标检测的一些论文，R-CNN，Fast R-CNN，Faster R-CNN，看的时候一知半解，很多地方也马马虎虎，今天对之前的知识做一下梳理</p>
-<h2 id="Computer-Vision"><a href="#Computer-Vision" class="headerlink" title="Computer Vision"></a>Computer Vision</h2><p>目前来说，所接触的到CV方向主要有图像分类，目标检测，语义分割，其中目标检测技术的一般流程主要有以下几个方面</p>
+<h2 id="Computer-Vision"><a href="#Computer-Vision" class="headerlink" title="Computer Vision"></a>Computer Vision</h2><p>目前来说，所接触的到CV方向主要有图像分类，目标检测，语义分割，有两大系列的目标检测而算法，使用Region proposal算法（two stage），不使用Region proposal算法（SSD，YOLO），其中目标检测技术的一般流程主要有以下几个方面</p>
 <ol>
 <li>region proposal：候选区域的生成</li>
 <li>classification：对候选区域提取特征，做物体的分类</li>
@@ -1578,135 +1728,6 @@
 
 
     
-      
-
-  
-
-  
-  
-  
-
-  <article class="post post-type-normal" itemscope itemtype="http://schema.org/Article">
-  
-  
-  
-  <div class="post-block">
-    <link itemprop="mainEntityOfPage" href="http://yoursite.com/2018/05/16/HousePricePrediction/">
-
-    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
-      <meta itemprop="name" content="Fengyuhen">
-      <meta itemprop="description" content="">
-      <meta itemprop="image" content="/images/avatar.gif">
-    </span>
-
-    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
-      <meta itemprop="name" content="我有一片海">
-    </span>
-
-    
-      <header class="post-header">
-
-        
-        
-          <h1 class="post-title" itemprop="name headline">
-                
-                <a class="post-title-link" href="/2018/05/16/HousePricePrediction/" itemprop="url">HousePricePrediction</a></h1>
-        
-
-        <div class="post-meta">
-          <span class="post-time">
-            
-              <span class="post-meta-item-icon">
-                <i class="fa fa-calendar-o"></i>
-              </span>
-              
-                <span class="post-meta-item-text">Posted on</span>
-              
-              <time title="Post created" itemprop="dateCreated datePublished" datetime="2018-05-16T20:59:21+08:00">
-                2018-05-16
-              </time>
-            
-
-            
-
-            
-          </span>
-
-          
-
-          
-            
-          
-
-          
-          
-
-          
-
-          
-
-          
-
-        </div>
-      </header>
-    
-
-    
-    
-    
-    <div class="post-body" itemprop="articleBody">
-
-      
-      
-
-      
-        
-          
-            <h2 id="Refercance"><a href="#Refercance" class="headerlink" title="Refercance"></a>Refercance</h2><p>今天学习的kaggle kernal，做一些总结归纳<br><a href="https://www.kaggle.com/apapiu/regularized-linear-models/code" target="_blank" rel="noopener">https://www.kaggle.com/apapiu/regularized-linear-models/code</a></p>
-<h2 id="Need-to-be-learned"><a href="#Need-to-be-learned" class="headerlink" title="Need to be learned"></a>Need to be learned</h2><ol>
-<li>sklearn中的线性模型:Ridge, RidgeCV, ElasticNet, LassoCV, LassoLarsCV</li>
-<li></li>
-</ol>
-<h2 id="Key-Point"><a href="#Key-Point" class="headerlink" title="Key Point"></a>Key Point</h2><ol>
-<li>正态分布（高斯分布）</li>
-<li>对数正态分布: 对数正态分布（logarithmic normal distribution）是指一个随机变量的对数服从正态分布，则该随机变量服从对数正态分布。对数正态分布从短期来看，与正态分布非常接近。但长期来看，对数正态分布向上分布的数值更多一些。</li>
-<li></li>
-</ol>
-
-          
-        
-      
-    </div>
-    
-    
-    
-
-    
-
-    
-
-    
-
-    <footer class="post-footer">
-      
-
-      
-
-      
-
-      
-      
-        <div class="post-eof"></div>
-      
-    </footer>
-  </div>
-  
-  
-  
-  </article>
-
-
-    
   </section>
 
   
@@ -1757,7 +1778,7 @@
               
                 <a href="/archives/">
               
-                  <span class="site-state-item-count">13</span>
+                  <span class="site-state-item-count">14</span>
                   <span class="site-state-item-name">posts</span>
                 </a>
               </div>
